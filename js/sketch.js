@@ -16,7 +16,7 @@ let alignSlider, cohesionSlider, separationSlider;
 function setup() {
     createCanvas(canvas.width,canvas.height);
     colorMode(HSB, 360, 100, 100);
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 400; i++) {
         flock.push(new Boid());
     }
 }
