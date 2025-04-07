@@ -1,3 +1,8 @@
+// Flocking
+// Daniel Shiffman
+// https://thecodingtrain.com/CodingChallenges/124-flocking-boids.html
+// https://youtu.be/mhjuuHl6qHM
+
 class Boid {
     constructor() {
         this.position = createVector(random(width), random(height));
@@ -84,6 +89,17 @@ class Boid {
             steering.limit(this.maxForce);
         }
         return steering;
+    }
+
+    avoidMouse() {
+        let perceptionRadius = 50;
+        let mouse = createVector(mouseX, mouseY);
+        let d = dist(this.position.x, this.position.y, mouse.x, mouse.y);
+        if (d < perceptionRadius) {
+            let repulse = p5.Vector.sub(this.position, mouse);
+            repulse.setMag((perceptionRadius - d) * 0.5); // Más fuerte si está más cerca
+            this.acceleration.add(repulse);
+        }
     }
 
     flock(boids) {
