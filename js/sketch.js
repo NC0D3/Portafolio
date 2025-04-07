@@ -37,3 +37,21 @@ function draw() {
         boid.show();
     }
 }
+
+// Manejo de touch sin bloquear el scroll
+function touchStarted() {
+    touchX = mouseX;
+    touchY = mouseY;
+    return false;
+}
+
+function touchMoved() {
+    touchX = mouseX;
+    touchY = mouseY;
+    return false;
+}
+
+function touchEnded() {
+    touchX = null;
+    touchY = null;
+}
