@@ -3,7 +3,7 @@ const canvas = document.getElementById("flockCanvas");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     });
@@ -12,12 +12,12 @@ const canvas = document.getElementById("flockCanvas");
       constructor() {
         this.position = {
           x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height
+          y: Math.random() * canvas.height,
         };
         const angle = Math.random() * 2 * Math.PI;
         this.velocity = {
           x: Math.cos(angle),
-          y: Math.sin(angle)
+          y: Math.sin(angle),
         };
         this.acceleration = { x: 0, y: 0 };
         this.maxSpeed = 2;
@@ -28,7 +28,7 @@ const canvas = document.getElementById("flockCanvas");
         this.velocity.x += this.acceleration.x;
         this.velocity.y += this.acceleration.y;
 
-        const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
+        const speed = Math.hypot(this.velocity.x, this.velocity.y);
         if (speed > this.maxSpeed) {
           this.velocity.x = (this.velocity.x / speed) * this.maxSpeed;
           this.velocity.y = (this.velocity.y / speed) * this.maxSpeed;
@@ -37,11 +37,9 @@ const canvas = document.getElementById("flockCanvas");
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
 
-        // Reset acceleration
         this.acceleration.x = 0;
         this.acceleration.y = 0;
 
-        // Wrap around edges
         if (this.position.x < 0) this.position.x = canvas.width;
         if (this.position.x > canvas.width) this.position.x = 0;
         if (this.position.y < 0) this.position.y = canvas.height;
@@ -54,91 +52,94 @@ const canvas = document.getElementById("flockCanvas");
       }
 
       flock(boids) {
-        const separation = { x: 0, y: 0 };
-        const alignment = { x: 0, y: 0 };
-        const cohesion = { x: 0, y: 0 };
-        let count = 0;
+        const perception = 70;
+        let total = 0;
+        let align = { x: 0, y: 0 };
+        let cohesion = { x: 0, y: 0 };
+        let separation = { x: 0, y: 0 };
 
         for (let other of boids) {
           const dx = other.position.x - this.position.x;
           const dy = other.position.y - this.position.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          const range = 50;
+          const d = Math.hypot(dx, dy);
+          if (other !== this && d < perception) {
+            // Alineación
+            align.x += other.velocity.x;
+            align.y += other.velocity.y;
 
-          if (other !== this && distance < range) {
-            // Separation
-            separation.x -= dx / distance;
-            separation.y -= dy / distance;
-
-            // Alignment
-            alignment.x += other.velocity.x;
-            alignment.y += other.velocity.y;
-
-            // Cohesion
+            // Cohesión
             cohesion.x += other.position.x;
             cohesion.y += other.position.y;
 
-            count++;
+            // Separación
+            separation.x -= dx / (d * d);
+            separation.y -= dy / (d * d);
+
+            total++;
           }
         }
 
-        if (count > 0) {
-          // Separation
-          separation.x /= count;
-          separation.y /= count;
-          const magSep = Math.sqrt(separation.x ** 2 + separation.y ** 2);
-          if (magSep > 0) {
-            separation.x = (separation.x / magSep) * this.maxSpeed - this.velocity.x;
-            separation.y = (separation.y / magSep) * this.maxSpeed - this.velocity.y;
+        if (total > 0) {
+          // Alineación
+          align.x /= total;
+          align.y /= total;
+          let mag = Math.hypot(align.x, align.y);
+          if (mag > 0) {
+            align.x = (align.x / mag) * this.maxSpeed - this.velocity.x;
+            align.y = (align.y / mag) * this.maxSpeed - this.velocity.y;
           }
 
-          // Alignment
-          alignment.x /= count;
-          alignment.y /= count;
-          const magAli = Math.sqrt(alignment.x ** 2 + alignment.y ** 2);
-          if (magAli > 0) {
-            alignment.x = (alignment.x / magAli) * this.maxSpeed - this.velocity.x;
-            alignment.y = (alignment.y / magAli) * this.maxSpeed - this.velocity.y;
+          // Cohesión
+          cohesion.x /= total;
+          cohesion.y /= total;
+          cohesion.x -= this.position.x;
+          cohesion.y -= this.position.y;
+          mag = Math.hypot(cohesion.x, cohesion.y);
+          if (mag > 0) {
+            cohesion.x = (cohesion.x / mag) * this.maxSpeed - this.velocity.x;
+            cohesion.y = (cohesion.y / mag) * this.maxSpeed - this.velocity.y;
           }
 
-          // Cohesion
-          cohesion.x /= count;
-          cohesion.y /= count;
-          cohesion.x = cohesion.x - this.position.x;
-          cohesion.y = cohesion.y - this.position.y;
-          const magCoh = Math.sqrt(cohesion.x ** 2 + cohesion.y ** 2);
-          if (magCoh > 0) {
-            cohesion.x = (cohesion.x / magCoh) * this.maxSpeed - this.velocity.x;
-            cohesion.y = (cohesion.y / magCoh) * this.maxSpeed - this.velocity.y;
+          // Separación
+          mag = Math.hypot(separation.x, separation.y);
+          if (mag > 0) {
+            separation.x = (separation.x / mag) * this.maxSpeed - this.velocity.x;
+            separation.y = (separation.y / mag) * this.maxSpeed - this.velocity.y;
           }
 
-          // Apply weights
+          this.applyForce({ x: align.x * 1.0, y: align.y * 1.0 });
+          this.applyForce({ x: cohesion.x * 0.8, y: cohesion.y * 0.8 });
           this.applyForce({ x: separation.x * 1.5, y: separation.y * 1.5 });
-          this.applyForce({ x: alignment.x * 1.0, y: alignment.y * 1.0 });
-          this.applyForce({ x: cohesion.x * 1.0, y: cohesion.y * 1.0 });
         }
       }
 
       draw() {
+        const angle = Math.atan2(this.velocity.y, this.velocity.x);
+        ctx.save();
+        ctx.translate(this.position.x, this.position.y);
+        ctx.rotate(angle);
         ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.arc(this.position.x, this.position.y, 2, 0, 2 * Math.PI);
-        ctx.fillStyle = `hsl(${(this.position.x + this.position.y) % 360}, 100%, 60%)`;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-10, 4);
+        ctx.lineTo(-10, -4);
+        ctx.closePath();
+        ctx.fillStyle = "#ffffffcc";
         ctx.fill();
+        ctx.restore();
       }
     }
 
-    const boids = [];
-    for (let i = 0; i < 100; i++) {
-      boids.push(new Boid());
+    const flock = [];
+    for (let i = 0; i < 70; i++) {
+      flock.push(new Boid());
     }
 
     function animate() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      for (let boid of boids) {
-        boid.flock(boids);
+      for (let boid of flock) {
+        boid.flock(flock);
         boid.update();
         boid.draw();
       }
