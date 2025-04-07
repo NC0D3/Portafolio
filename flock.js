@@ -20,13 +20,13 @@ class Boid {
       y: Math.sin(angle),
     };
     this.acceleration = { x: 0, y: 0 };
-    this.maxSpeed = 3;  // Incrementar la velocidad máxima
-    this.maxForce = 0.05;  // Fuerza máxima ajustada
+    this.maxSpeed = 2.5;  // Velocidad máxima
+    this.maxForce = 0.08;  // Fuerza máxima
   }
 
-  update(deltaTime) {
-    this.velocity.x += this.acceleration.x * deltaTime;
-    this.velocity.y += this.acceleration.y * deltaTime;
+  update() {
+    this.velocity.x += this.acceleration.x;
+    this.velocity.y += this.acceleration.y;
 
     const speed = Math.hypot(this.velocity.x, this.velocity.y);
     if (speed > this.maxSpeed) {
@@ -34,8 +34,8 @@ class Boid {
       this.velocity.y = (this.velocity.y / speed) * this.maxSpeed;
     }
 
-    this.position.x += this.velocity.x * deltaTime;
-    this.position.y += this.velocity.y * deltaTime;
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
 
     this.acceleration.x = 0;
     this.acceleration.y = 0;
@@ -52,7 +52,7 @@ class Boid {
   }
 
   flock(boids) {
-    const perception = 75;  // Ajuste del rango de percepción
+    const perception = 100;  // Rango de percepción
     let total = 0;
     let align = { x: 0, y: 0 };
     let cohesion = { x: 0, y: 0 };
@@ -72,8 +72,8 @@ class Boid {
         cohesion.y += other.position.y;
 
         // Separación
-        separation.x -= dx / (d * 0.5);  // Ajuste de separación
-        separation.y -= dy / (d * 0.5);  // Ajuste de separación
+        separation.x -= dx / (d * d);
+        separation.y -= dy / (d * d);
         separation.x *= 0.6;
         separation.y *= 0.6;
 
@@ -109,9 +109,9 @@ class Boid {
         separation.y = (separation.y / mag) * this.maxSpeed - this.velocity.y;
       }
 
-      this.applyForce({ x: align.x * 1.2, y: align.y * 1.2 });
-      this.applyForce({ x: cohesion.x * 1.0, y: cohesion.y * 1.0 });
-      this.applyForce({ x: separation.x * 0.5, y: separation.y * 0.5 });
+      this.applyForce({ x: align.x * 1.5, y: align.y * 1.5 });
+      this.applyForce({ x: cohesion.x * 1.2, y: cohesion.y * 1.2 });
+      this.applyForce({ x: separation.x * 0.8, y: separation.y * 0.8 });
     }
   }
 
@@ -136,21 +136,17 @@ for (let i = 0; i < 70; i++) {
   flock.push(new Boid());
 }
 
-let lastTime = 0;
-function animate(time) {
-  const deltaTime = (time - lastTime) / 1000; // Calcular deltaTime
-  lastTime = time;
-
+function animate() {
   ctx.fillStyle = "rgba(0,0,0,0.2)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let boid of flock) {
     boid.flock(flock);
-    boid.update(deltaTime);
+    boid.update();
     boid.draw();
   }
 
   requestAnimationFrame(animate);
 }
 
-animate(0);
+animate();
