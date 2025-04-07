@@ -86,17 +86,6 @@ class Boid {
         return steering;
     }
 
-    avoidMouse() {
-        let perceptionRadius = 50;
-        let mouse = createVector(mouseX, mouseY);
-        let d = dist(this.position.x, this.position.y, mouse.x, mouse.y);
-        if (d < perceptionRadius) {
-            let repulse = p5.Vector.sub(this.position, mouse);
-            repulse.setMag((perceptionRadius - d) * 0.5); // Más fuerte si está más cerca
-            this.acceleration.add(repulse);
-        }
-    }
-
     flock(boids) {
         let alignment = this.align(boids);
         let cohesion = this.cohesion(boids);
