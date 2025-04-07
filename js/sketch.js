@@ -17,7 +17,7 @@ function setup() {
     createCanvas(canvas.width,canvas.height);
     colorMode(HSB, 360, 100, 100);
     let isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-    let boidCount = isMobile ? 150 : 400;
+    let boidCount = isMobile ? 100 : 400;
     for (let i = 0; i < boidCount; i++) {
         flock.push(new Boid());
     }
