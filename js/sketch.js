@@ -10,8 +10,8 @@ window.addEventListener("resize", () => {
 
 
 const flock = [];
-
-let alignSlider, cohesionSlider, separationSlider;
+let touchX = null;
+let touchY = null;
 
 function setup() {
     createCanvas(canvas.width,canvas.height);
