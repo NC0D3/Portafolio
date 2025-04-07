@@ -125,7 +125,7 @@
         ctx.lineTo(-10, 4);
         ctx.lineTo(-10, -4);
         ctx.closePath();
-        ctx.fillStyle = "#ff0000cc";
+        ctx.fillStyle = "#00ff00cc";
         ctx.fill();
         ctx.restore();
       }
