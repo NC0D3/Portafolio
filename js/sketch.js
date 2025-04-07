@@ -22,10 +22,11 @@ function setup() {
 }
 
 function draw() {
-    background(0);
+    background(50);
     for (let boid of flock) {
         boid.edges();
         boid.flock(flock);
+        boid.avoidMouse();
         boid.update();
         boid.show();
     }
