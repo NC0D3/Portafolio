@@ -137,7 +137,7 @@
       }
 
       flock(boids) {
-        const perception = 70;
+        const perception = 100;
         let total = 0;
         let align = { x: 0, y: 0 };
         let cohesion = { x: 0, y: 0 };
@@ -159,6 +159,8 @@
             // Separación
             separation.x -= dx / (d * d);
             separation.y -= dy / (d * d);
+            separation.x *= 0.7;  // reduce la fuerza de separación
+            separation.y *= 0.7;
 
             total++;
           }
