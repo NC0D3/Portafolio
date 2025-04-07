@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Portafolio</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #000;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    header {
+      padding: 60px 20px;
+      text-align: center;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    header h1 {
+      font-size: 3em;
+      margin: 0;
+    }
+
+    header p {
+      font-size: 1.2em;
+      color: #aaa;
+    }
+
+    section {
+      padding: 60px 20px;
+      max-width: 900px;
+      margin: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      margin-bottom: 40px;
+      border-radius: 8px;
+    }
+
+    h2 {
+      border-bottom: 2px solid #00bcd4;
+      padding-bottom: 10px;
+    }
+
+    .proyecto {
+      margin: 20px 0;
+    }
+
+    .proyecto h3 {
+      margin: 0;
+    }
+
+    .proyecto p {
+      color: #ccc;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+      font-size: 0.9em;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="boidsCanvas"></canvas>
+
+  <header>
+    <h1>Hola, soy [Tu Nombre]</h1>
+    <p>Desarrollador | Diseñador | Creador</p>
+  </header>
+
+  <section id="proyectos">
+    <h2>Proyectos</h2>
+    <div class="proyecto">
+      <h3>Proyecto 1</h3>
+      <p>Descripción breve de tu proyecto. Qué hiciste, qué tecnologías usaste, etc.</p>
+    </div>
+    <div class="proyecto">
+      <h3>Proyecto 2</h3>
+      <p>Otro ejemplo de algo interesante que hayas creado.</p>
+    </div>
+  </section>
+
+  <section id="contacto">
+    <h2>Contacto</h2>
+    <p>Puedes escribirme a: <strong>tucorreo@ejemplo.com</strong></p>
+    <p>O encontrarme en redes sociales.</p>
+  </section>
+
+  <footer>
+    &copy; 2025 [Tu Nombre]. Todos los derechos reservados.
+  </footer>
+
+  <script>
+    // Código de boids
+    const canvas = document.getElementById("boidsCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    class Boid {
+      constructor() {
+        this.position = { x: Math.random() * canvas.width, y: Math.random() * canvas.height };
+        this.velocity = { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 };
+        this.acceleration = { x: 0, y: 0 };
+        this.maxSpeed = 2;
+        this.maxForce = 0.05;
+      }
+
+      update() {
+        this.velocity.x += this.acceleration.x;
+        this.velocity.y += this.acceleration.y;
+
+        const speed = Math.sqrt(this.velocity.x ** 2 + this.velocity.y ** 2);
+        if (speed > this.maxSpeed) {
+          this.velocity.x *= this.maxSpeed / speed;
+          this.velocity.y *= this.maxSpeed / speed;
+        }
+
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+
+        this.acceleration.x = 0;
+        this.acceleration.y = 0;
+        this.edges();
+      }
+
+      applyForce(force) {
+        this.acceleration.x += force.x;
+        this.acceleration.y += force.y;
+      }
+
+      align(boids) {
+        let perception = 50;
+        let total = 0;
+        let steering = { x: 0, y: 0 };
+        for (let other of boids) {
+          const d = Math.hypot(this.position.x - other.position.x, this.position.y - other.position.y);
+          if (other !== this && d < perception) {
+            steering.x += other.velocity.x;
+            steering.y += other.velocity.y;
+            total++;
+          }
+        }
+        if (total > 0) {
+          steering.x /= total;
+          steering.y /= total;
+          const mag = Math.sqrt(steering.x ** 2 + steering.y ** 2);
+          steering.x = (steering.x / mag) * this.maxSpeed - this.velocity.x;
+          steering.y = (steering.y / mag) * this.maxSpeed - this.velocity.y;
+          const steerMag = Math.sqrt(steering.x ** 2 + steering.y ** 2);
+          if (steerMag > this.maxForce) {
+            steering.x *= this.maxForce / steerMag;
+            steering.y *= this.maxForce / steerMag;
+          }
+        }
+        return steering;
+      }
+
+      edges() {
+        if (this.position.x > canvas.width) this.position.x = 0;
+        if (this.position.x < 0) this.position.x = canvas.width;
+        if (this.position.y > canvas.height) this.position.y = 0;
+        if (this.position.y < 0) this.position.y = canvas.height;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+      }
+
+      flock(boids) {
+        let alignment = this.align(boids);
+        this.applyForce(alignment);
+      }
+    }
+
+    let boids = [];
+    for (let i = 0; i < 100; i++) {
+      boids.push(new Boid());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let boid of boids) {
+        boid.flock(boids);
+        boid.update();
+        boid.draw();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
