@@ -92,8 +92,10 @@ class Boid {
     }
 
     avoidMouse() {
+        let targetX = (touchX !== null) ? touchX : mouseX;
+        let targetY = (touchY !== null) ? touchY : mouseY;
         let perceptionRadius = 50;
-        let mouse = createVector(mouseX, mouseY);
+        let mouse = createVector(targetX, targetY);
         let d = dist(this.position.x, this.position.y, mouse.x, mouse.y);
         if (d < perceptionRadius) {
             let repulse = p5.Vector.sub(this.position, mouse);
