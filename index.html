@@ -1,87 +1,95 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nc0d3</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      height: 100%;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/addons/p5.dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/addons/p5.sound.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nc0d3</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            font-family: 'Segoe UI', sans-serif;
+        }
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
 
-    .content {
-      position: relative;
-      z-index: 1;
-      color: white;
-      text-align: center;
-      padding-top: 10vh;
-    }
+        .content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-align: center;
+            padding-top: 10vh;
+        }
 
-    h1 {
-      font-size: 3em;
-      margin-bottom: 0.2em;
-    }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 0.2em;
+        }
 
-    h2 {
-      font-weight: normal;
-      margin-bottom: 1em;
-      opacity: 0.8;
-    }
+        h2 {
+            font-weight: normal;
+            margin-bottom: 1em;
+            opacity: 0.8;
+        }
 
-    .projects {
-      display: flex;
-      flex-direction: column;
-      gap: 1em;
-      align-items: center;
-    }
+        .projects {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            align-items: center;
+        }
 
-    .project-card {
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 1em 2em;
-      border-radius: 12px;
-      backdrop-filter: blur(6px);
-      max-width: 400px;
-      color: white;
-    }
+        .project-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 1em 2em;
+            border-radius: 12px;
+            backdrop-filter: blur(6px);
+            max-width: 400px;
+            color: white;
+        }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 2em;
-      }
-    }
-  </style>
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <canvas id="flockCanvas"></canvas>
+    <canvas id="flockCanvas"></canvas>
 
-  <div class="content">
-    <h1>Mendoza Cardenas Raymundo</h1>
-    <h2>Desarrollador web | Maker | Diseñador</h2>
+    <div class="content">
+        <h1>Mendoza Cardenas Raymundo</h1>
+        <h2>Desarrollador web | Maker | Diseñador</h2>
 
-    <div class="projects">
-      <div class="project-card">
-        <h3>Proyecto 1</h3>
-        <p>Descripción breve de tu proyecto.</p>
-      </div>
-      <div class="project-card">
-        <h3>Proyecto 2</h3>
-        <p>Otro proyecto genial que hiciste.</p>
-      </div>
-      <!-- Agrega más proyectos aquí -->
+        <div class="projects">
+            <div class="project-card">
+                <h3>Proyecto 1</h3>
+                <p>Descripción breve de tu proyecto.</p>
+            </div>
+            <div class="project-card">
+                <h3>Proyecto 2</h3>
+                <p>Otro proyecto genial que hiciste.</p>
+            </div>
+            <!-- Agrega más proyectos aquí -->
+        </div>
     </div>
-  </div>
 
-  <script src="flock.js"></script>
+    <script src="js/sketch.js"></script>
+    <script src="js/boid.js"></script>
 </body>
+
 </html>
