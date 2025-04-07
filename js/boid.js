@@ -92,8 +92,20 @@ class Boid {
     }
 
     avoidMouse() {
-        let targetX = (touchX !== null) ? touchX : mouseX;
-        let targetY = (touchY !== null) ? touchY : mouseY;
+        let active = false;
+        let targetX, targetY;
+    
+        if (isTouching && touchX !== null && touchY !== null) {
+            targetX = touchX;
+            targetY = touchY;
+            active = true;
+        } else if (mouseIsPressed) {
+            targetX = mouseX;
+            targetY = mouseY;
+            active = true;
+        }
+    
+        if (!active) return;
         let perceptionRadius = 50;
         let mouse = createVector(targetX, targetY);
         let d = dist(this.position.x, this.position.y, mouse.x, mouse.y);
