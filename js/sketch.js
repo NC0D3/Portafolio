@@ -26,7 +26,7 @@ function draw() {
     for (let boid of flock) {
         boid.edges();
         boid.flock(flock);
-        boid.avoidMouse();
+        boid.avoidMouse(); //parece que no pusiera esta linea jaja wtf
         boid.update();
         boid.show();
     }
