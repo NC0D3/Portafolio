@@ -124,8 +124,8 @@ class Boid {
     }
 
     show() {
-        strokeWeight(6);
-        stroke(this.color);
-        point(this.position.x, this.position.y);
+        noStroke();
+        fill(this.color);
+        ellipse(this.position.x, this.position.y, 6, 6);
     }
 }
