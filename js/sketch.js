@@ -10,6 +10,7 @@ window.addEventListener("resize", () => {
 
 
 const flock = [];
+let isTouching = false;
 let touchX = null;
 let touchY = null;
 
@@ -38,18 +39,26 @@ function draw() {
     }
 }
 
-// Manejo de touch sin bloquear el scroll
-function touchStarted() {
-    touchX = mouseX;
-    touchY = mouseY;
-    return false;
-}
+canvas.addEventListener("touchstart", (e) => {
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    touchX = touch.clientX - rect.left;
+    touchY = touch.clientY - rect.top;
+    isTouching = true;
+}, { passive: true });  // NO bloquea el scroll
 
-function touchMoved() {
-    touchX = mouseX;
-    touchY = mouseY;
-    return false;
-}
+canvas.addEventListener("touchmove", (e) => {
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    touchX = touch.clientX - rect.left;
+    touchY = touch.clientY - rect.top;
+}, { passive: true });
+
+canvas.addEventListener("touchend", () => {
+    isTouching = false;
+    touchX = null;
+    touchY = null;
+}, { passive: true });
 
 function touchEnded() {
     touchX = null;
