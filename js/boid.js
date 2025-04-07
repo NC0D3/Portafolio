@@ -99,7 +99,7 @@ class Boid {
             targetX = touchX;
             targetY = touchY;
             active = true;
-        } else if (mouseIsPressed) {
+        } else{
             targetX = mouseX;
             targetY = mouseY;
             active = true;
