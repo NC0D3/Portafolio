@@ -5,7 +5,8 @@ app = Flask(__name__)
 CORS(app)  # Esto permite peticiones desde otros dominios (como GitHub Pages)
 @app.route("/process", methods=["POST"])
 def process():
-    return "pollo autorizao para rebotar en estado cuantico"
+    capacidad = random.randint(1, 100)
+    return f"capacidad para comer pollo: {capacidad}"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
