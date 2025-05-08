@@ -1,8 +1,8 @@
 import os
-from flask import Flask, request, send_file
-
+from flask import Flask, request
+from flask_cors import CORS
 app = Flask(__name__)
-
+CORS(app)  # Esto permite peticiones desde otros dominios (como GitHub Pages)
 @app.route("/process", methods=["POST"])
 def process():
     return "pollo autorizao para rebotar en estado cuantico"
