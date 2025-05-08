@@ -111,6 +111,21 @@
 
     <script src="js/sketch.js"></script>
     <script src="js/boid.js"></script>
+    <script>
+        function llamarAPI() {
+          fetch("https://nose-que-hago-xd.onrender.com/process", {
+            method: "POST"
+          })
+          .then(response => response.text())
+          .then(texto => {
+            document.getElementById("respuesta").innerText = texto;
+          })
+          .catch(error => {
+            document.getElementById("respuesta").innerText = "Error al contactar el servidor.";
+            console.error(error);
+          });
+        }
+    </script>
 </body>
 
 </html>
