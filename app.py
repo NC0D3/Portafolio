@@ -1,11 +1,6 @@
-import os
 from flask import Flask, request, send_file
-from PIL import Image
-import tensorflow as tf
-import io
 
 app = Flask(__name__)
-model = tf.keras.models.load_model("modelo.keras")
 
 @app.route("/process", methods=["POST"])
 def process():
