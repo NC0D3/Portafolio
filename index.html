@@ -64,6 +64,48 @@
                 font-size: 2em;
             }
         }
+
+        .about {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2em auto;
+            max-width: 800px;
+            flex-wrap: wrap;
+            gap: 1em;
+        }
+        
+        .about-img {
+            width: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        
+        .about-text {
+            max-width: 500px;
+            color: white;
+            text-align: left;
+        }
+        
+        .project-carousel {
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding: 1em 0;
+        }
+        
+        .carousel-track {
+            display: flex;
+            gap: 1em;
+            padding: 1em;
+            scroll-snap-align: start;
+        }
+        
+        .project-card {
+            min-width: 280px;
+            flex: 0 0 auto;
+            scroll-snap-align: center;
+        }
     </style>
 </head>
 
@@ -73,39 +115,41 @@
     <div class="content">
         <h1>Mendoza Cardenas Raymundo</h1>
         <h2>Desarrollador web | Maker | Diseñador</h2>
-
-        <div class="projects">
+        <div class="about">
+          <img src="https://via.placeholder.com/150" alt="Tu foto" class="about-img" />
+          <div class="about-text">
+            <h3>¿Quién soy?</h3>
+            <p>
+              Soy Raymundo Mendoza Cárdenas, un apasionado por la tecnología, la creación de soluciones prácticas y el diseño web. Me encanta combinar creatividad con funcionalidad, ya sea en código o en proyectos físicos. Siempre estoy aprendiendo algo nuevo y compartiendo con la comunidad.
+            </p>
+          </div>
+        </div>
+        <div class="project-carousel">
+          <div class="carousel-track">
             <div class="project-card">
-                <h3>Proyecto 1</h3>
-                <p>Descripción breve de tu proyecto.</p>
-                <button onclick="llamarAPI()">Pedir autorización</button>
-                <p id="respuesta"></p>
+              <h3>Proyecto 1</h3>
+              <p>Descripción breve de tu proyecto.</p>
+              <button onclick="llamarAPI()">Pedir autorización</button>
+              <p id="respuesta"></p>
             </div>
             <div class="project-card">
-                <h3>Proyecto 2</h3>
-                <p>Otro proyecto genial que hiciste.</p>
+              <h3>Proyecto 2</h3>
+              <p>Otro proyecto genial que hiciste.</p>
             </div>
             <div class="project-card">
-                <h3>Proyecto 2</h3>
-                <p>Otro proyecto genial que hiciste.</p>
+              <h3>Proyecto 3</h3>
+              <p>Otro proyecto genial que hiciste.</p>
             </div>
             <div class="project-card">
-                <h3>Proyecto 2</h3>
-                <p>Otro proyecto genial que hiciste.</p>
+              <h3>Proyecto 4</h3>
+              <p>Otro proyecto genial que hiciste.</p>
             </div>
             <div class="project-card">
-                <h3>Proyecto 2</h3>
-                <p>Otro proyecto genial que hiciste.</p>
+              <h3>Proyecto 5</h3>
+              <p>Otro proyecto genial que hiciste.</p>
             </div>
-            <div class="project-card">
-                <h3>Proyecto 2</h3>
-                <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <div class="project-card">
-                <h3>Proyecto 2</h3>
-                <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <!-- Agrega más proyectos aquí -->
+            <!-- Agrega más tarjetas aquí -->
+          </div>
         </div>
     </div>
 
