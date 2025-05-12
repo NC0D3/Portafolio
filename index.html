@@ -121,10 +121,12 @@
             display: flex;
             gap: 1em;
             overflow-x: auto;
-            scroll-behavior: smooth;
             padding: 1em;
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none;  /* IE 10+ */
+            scroll-snap-type: x mandatory;
+            scroll-padding: 1em;
+            scroll-behavior: smooth;
         }
         
         .project-carousel::-webkit-scrollbar {
@@ -140,6 +142,7 @@
             border-radius: 12px;
             backdrop-filter: blur(6px);
             color: white;
+            scroll-snap-align: center;
         }
         
         .carousel-btn {
@@ -243,22 +246,19 @@
       const carousel = document.getElementById('carousel');
     
       function scrollCarousel(direction) {
-        const scrollAmount = 300; // píxeles
-        carousel.scrollBy({
-          left: direction * scrollAmount,
-          behavior: 'smooth'
-        });
+        const scrollAmount = carousel.offsetWidth * 0.8; // usa porcentaje del ancho
+        carousel.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
       }
     
-      // Soporte para ruedita del mouse (horizontal)
+      // Smooth scroll con rueda del mouse, solo si hay deltaY significativo
+      let isScrolling = false;
       carousel.addEventListener('wheel', (e) => {
-        if (e.deltaY !== 0) {
-          e.preventDefault();
-          carousel.scrollBy({
-            left: e.deltaY,
-            behavior: 'smooth'
-          });
-        }
+        if (Math.abs(e.deltaY) < 10) return; // ignora delta leve
+        e.preventDefault();
+        if (isScrolling) return; // evita múltiples scrolls solapados
+        isScrolling = true;
+        scrollCarousel(e.deltaY > 0 ? 1 : -1);
+        setTimeout(() => isScrolling = false, 400); // tiempo del scroll suave
       }, { passive: false });
     </script>
 </body>
