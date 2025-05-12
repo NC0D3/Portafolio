@@ -106,6 +106,67 @@
             flex: 0 0 auto;
             scroll-snap-align: center;
         }
+
+        .project-carousel-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            max-width: 100%;
+            margin: 2em 0;
+        }
+        
+        .project-carousel {
+            display: flex;
+            gap: 1em;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 1em;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE 10+ */
+        }
+        
+        .project-carousel::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+        
+        .project-card {
+            min-width: 280px;
+            max-width: 300px;
+            flex: 0 0 auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 1em 2em;
+            border-radius: 12px;
+            backdrop-filter: blur(6px);
+            color: white;
+        }
+        
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            background-color: rgba(0, 0, 0, 0.4);
+            border: none;
+            color: white;
+            font-size: 2em;
+            padding: 0.2em 0.5em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .carousel-btn:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .carousel-btn.left {
+            left: 0;
+        }
+        
+        .carousel-btn.right {
+            right: 0;
+        }
     </style>
 </head>
 
@@ -124,8 +185,10 @@
             </p>
           </div>
         </div>
-        <div class="project-carousel">
-          <div class="carousel-track">
+        <div class="project-carousel-container">
+          <button class="carousel-btn left" onclick="scrollCarousel(-1)">‹</button>
+          
+          <div class="project-carousel" id="carousel">
             <div class="project-card">
               <h3>Proyecto 1</h3>
               <p>Descripción breve de tu proyecto.</p>
@@ -140,16 +203,10 @@
               <h3>Proyecto 3</h3>
               <p>Otro proyecto genial que hiciste.</p>
             </div>
-            <div class="project-card">
-              <h3>Proyecto 4</h3>
-              <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <div class="project-card">
-              <h3>Proyecto 5</h3>
-              <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <!-- Agrega más tarjetas aquí -->
+            <!-- Agrega más tarjetas -->
           </div>
+          
+          <button class="carousel-btn right" onclick="scrollCarousel(1)">›</button>
         </div>
     </div>
 
@@ -169,6 +226,28 @@
             console.error(error);
           });
         }
+    </script>
+    <script>
+      const carousel = document.getElementById('carousel');
+    
+      function scrollCarousel(direction) {
+        const scrollAmount = 300; // píxeles
+        carousel.scrollBy({
+          left: direction * scrollAmount,
+          behavior: 'smooth'
+        });
+      }
+    
+      // Soporte para ruedita del mouse (horizontal)
+      carousel.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          carousel.scrollBy({
+            left: e.deltaY,
+            behavior: 'smooth'
+          });
+        }
+      }, { passive: false });
     </script>
 </body>
 
