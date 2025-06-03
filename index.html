@@ -147,17 +147,16 @@
         }
     </script>
     <script>
-        const originalText = "Inicio";
-        const navElement = document.getElementById("nav-hover");
+    document.querySelectorAll('.navbar-logo').forEach(el => {
+        const originalText = el.textContent;
     
         function randomizeFontPerLetter(element, text, interval = 50) {
             const letters = text.split("");
-            const states = new Array(letters.length).fill(false);
             const shuffleIndices = [...Array(letters.length).keys()].sort(() => Math.random() - 0.5);
-    
             const spans = letters.map(letter => {
                 const span = document.createElement("span");
                 span.textContent = letter;
+                span.style.transition = "font-family 0.2s";
                 return span;
             });
     
@@ -170,25 +169,24 @@
                     clearInterval(changeInterval);
                     return;
                 }
-    
                 const idx = shuffleIndices[i];
                 spans[idx].style.fontFamily = "monospace";
-                states[idx] = true;
                 i++;
             }, interval);
         }
     
         function resetFont(element, text) {
-            element.innerText = text;
+            element.textContent = text;
         }
     
-        navElement.addEventListener("mouseenter", () => {
-            randomizeFontPerLetter(navElement, originalText, 80);
+        el.addEventListener("mouseenter", () => {
+            randomizeFontPerLetter(el, originalText, 80);
         });
     
-        navElement.addEventListener("mouseleave", () => {
-            resetFont(navElement, originalText);
+        el.addEventListener("mouseleave", () => {
+            resetFont(el, originalText);
         });
+    });
     </script>
 </body>
 
