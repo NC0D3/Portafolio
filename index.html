@@ -93,6 +93,8 @@
             font-weight: bold;
             color: white;
             text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
         }
 
         .content {
@@ -104,10 +106,10 @@
 <body>
     <nav class="navbar">
         <div class="navbar-container">
-            <a href="#" class="navbar-logo">Inicio</a>
-            <a href="#" class="navbar-logo">Proyectos</a>
-            <a href="#" class="navbar-logo">A cerca de mi</a>
-            <a href="#" class="navbar-logo">Contacto</a>
+            <a href="#" class="navbar-logo" id="nav-hover">Inicio</a>
+            <a href="#" class="navbar-logo" id="nav-hover">Proyectos</a>
+            <a href="#" class="navbar-logo" id="nav-hover">A cerca de mi</a>
+            <a href="#" class="navbar-logo" id="nav-hover">Contacto</a>
         </div>
     </nav>
 
@@ -145,22 +147,48 @@
         }
     </script>
     <script>
-      const carousel = document.getElementById('carousel');
+        const originalText = "Inicio";
+        const navElement = document.getElementById("nav-hover");
     
-      function scrollCarousel(direction) {
-        const scrollAmount = carousel.offsetWidth * 0.8;
-        carousel.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
-      }
-
-      let isScrolling = false;
-      carousel.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaY) < 10) return;
-        e.preventDefault();
-        if (isScrolling) return;
-        isScrolling = true;
-        scrollCarousel(e.deltaY > 0 ? 1 : -1);
-        setTimeout(() => isScrolling = false, 400);
-      }, { passive: false });
+        function randomizeFontPerLetter(element, text, interval = 50) {
+            const letters = text.split("");
+            const states = new Array(letters.length).fill(false);
+            const shuffleIndices = [...Array(letters.length).keys()].sort(() => Math.random() - 0.5);
+    
+            const spans = letters.map(letter => {
+                const span = document.createElement("span");
+                span.textContent = letter;
+                return span;
+            });
+    
+            element.innerHTML = "";
+            spans.forEach(span => element.appendChild(span));
+    
+            let i = 0;
+            const changeInterval = setInterval(() => {
+                if (i >= shuffleIndices.length) {
+                    clearInterval(changeInterval);
+                    return;
+                }
+    
+                const idx = shuffleIndices[i];
+                spans[idx].style.fontFamily = "monospace";
+                states[idx] = true;
+                i++;
+            }, interval);
+        }
+    
+        function resetFont(element, text) {
+            element.innerText = text;
+        }
+    
+        navElement.addEventListener("mouseenter", () => {
+            randomizeFontPerLetter(navElement, originalText, 80);
+        });
+    
+        navElement.addEventListener("mouseleave", () => {
+            resetFont(navElement, originalText);
+        });
     </script>
 </body>
 
