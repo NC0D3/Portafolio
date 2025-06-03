@@ -1,266 +1,42 @@
-<!DOCTYPE html>
-<html lang="es">
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-logo">Inicio</a>
+        </div>
+    </nav>
 
-<head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/addons/p5.dom.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/addons/p5.sound.min.js"></script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nc0d3</title>
+    <canvas id="flockCanvas"></canvas>
+    <div class="content">
+        <!-- ... tu contenido original intacto ... -->
+    </div>
+
     <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        canvas {
+        .navbar {
             position: fixed;
             top: 0;
-            left: 0;
-            z-index: -1;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 0.8em 1.5em;
+            z-index: 10;
+            backdrop-filter: blur(6px);
+        }
+
+        .navbar-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-logo {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
         }
 
         .content {
-            position: relative;
-            z-index: 1;
-            color: white;
-            text-align: center;
-            padding-top: 10vh;
-        }
-
-        h1 {
-            font-size: 3em;
-            margin-bottom: 0.2em;
-        }
-
-        h2 {
-            font-weight: normal;
-            margin-bottom: 1em;
-            opacity: 0.8;
-        }
-
-        .projects {
-            display: flex;
-            flex-direction: column;
-            gap: 1em;
-            align-items: center;
-        }
-
-        .project-card {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 1em 2em;
-            border-radius: 12px;
-            backdrop-filter: blur(6px);
-            max-width: 400px;
-            color: white;
-        }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2em;
-            }
-        }
-
-        .about {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 2em auto;
-            max-width: 800px;
-            flex-wrap: wrap;
-            gap: 1em;
-        }
-        
-        .about-img {
-            width: 150px;
-            border-radius: 12px;
-            object-fit: cover;
-        }
-        
-        .about-text {
-            max-width: 500px;
-            color: white;
-            text-align: left;
-        }
-        
-        .project-carousel {
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            padding: 1em 0;
-        }
-        
-        .carousel-track {
-            display: flex;
-            gap: 1em;
-            padding: 1em;
-            scroll-snap-align: start;
-        }
-        
-        .project-card {
-            min-width: 280px;
-            flex: 0 0 auto;
-            scroll-snap-align: center;
-        }
-
-        .project-carousel-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            max-width: 100%;
-            margin: 2em 0;
-        }
-        
-        .project-carousel {
-            display: flex;
-            gap: 1em;
-            overflow-x: auto;
-            padding: 1em;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE 10+ */
-            scroll-snap-type: x mandatory;
-            scroll-padding: 1em;
-            scroll-behavior: smooth;
-        }
-        
-        .project-carousel::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
-        }
-        
-        .project-card {
-            min-width: 280px;
-            max-width: 300px;
-            flex: 0 0 auto;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 1em 2em;
-            border-radius: 12px;
-            backdrop-filter: blur(6px);
-            color: white;
-            scroll-snap-align: center;
-        }
-        
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 2;
-            background-color: rgba(0, 0, 0, 0.4);
-            border: none;
-            color: white;
-            font-size: 2em;
-            padding: 0.2em 0.5em;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .carousel-btn:hover {
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        
-        .carousel-btn.left {
-            left: 0;
-        }
-        
-        .carousel-btn.right {
-            right: 0;
+            padding-top: 80px; /* espacio para la navbar */
         }
     </style>
-</head>
-
-<body>
-    <canvas id="flockCanvas"></canvas>
-
-    <div class="content">
-        <h1>Mendoza Cardenas Raymundo</h1>
-        <h2>Desarrollador web | Maker | Diseñador</h2>
-        <div class="about">
-          <img src="https://via.placeholder.com/150" alt="Tu foto" class="about-img" />
-          <div class="about-text">
-            <h3>¿Quién soy?</h3>
-            <p>
-              Soy Raymundo Mendoza Cárdenas, un apasionado por la tecnología, la creación de soluciones prácticas y el diseño web. Me encanta combinar creatividad con funcionalidad, ya sea en código o en proyectos físicos. Siempre estoy aprendiendo algo nuevo y compartiendo con la comunidad.
-            </p>
-          </div>
-        </div>
-        <div class="project-carousel-container">
-          <button class="carousel-btn left" onclick="scrollCarousel(-1)">‹</button>
-          
-          <div class="project-carousel" id="carousel">
-            <div class="project-card">
-              <h3>Proyecto 1</h3>
-              <p>Descripción breve de tu proyecto.</p>
-              <button onclick="llamarAPI()">Pedir autorización</button>
-              <p id="respuesta"></p>
-            </div>
-            <div class="project-card">
-              <h3>Proyecto 2</h3>
-              <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <div class="project-card">
-              <h3>Proyecto 3</h3>
-              <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <div class="project-card">
-              <h3>Proyecto 3</h3>
-              <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <div class="project-card">
-              <h3>Proyecto 3</h3>
-              <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <div class="project-card">
-              <h3>Proyecto 3</h3>
-              <p>Otro proyecto genial que hiciste.</p>
-            </div>
-            <!-- Agrega más tarjetas -->
-          </div>
-          
-          <button class="carousel-btn right" onclick="scrollCarousel(1)">›</button>
-        </div>
-    </div>
-
-    <script src="js/sketch.js"></script>
-    <script src="js/boid.js"></script>
-    <script>
-        function llamarAPI() {
-          fetch("https://nose-que-hago-xd.onrender.com/process", {
-            method: "POST"
-          })
-          .then(response => response.text())
-          .then(texto => {
-            document.getElementById("respuesta").innerText = texto;
-          })
-          .catch(error => {
-            document.getElementById("respuesta").innerText = "Error al contactar el servidor.";
-            console.error(error);
-          });
-        }
-    </script>
-    <script>
-      const carousel = document.getElementById('carousel');
-    
-      function scrollCarousel(direction) {
-        const scrollAmount = carousel.offsetWidth * 0.8; // usa porcentaje del ancho
-        carousel.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
-      }
-    
-      // Smooth scroll con rueda del mouse, solo si hay deltaY significativo
-      let isScrolling = false;
-      carousel.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaY) < 10) return; // ignora delta leve
-        e.preventDefault();
-        if (isScrolling) return; // evita múltiples scrolls solapados
-        isScrolling = true;
-        scrollCarousel(e.deltaY > 0 ? 1 : -1);
-        setTimeout(() => isScrolling = false, 400); // tiempo del scroll suave
-      }, { passive: false });
-    </script>
 </body>
-
-</html>
