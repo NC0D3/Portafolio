@@ -31,6 +31,7 @@
 <script type="module">
 const canvas = document.getElementById('glcanvas');
 const gl = canvas.getContext('webgl2');
+gl.enable(gl.DEPTH_TEST);
 gl.clearColor(1, 1, 1, 1);
 
 // === Shaders ===
@@ -80,7 +81,7 @@ function updateMatrix() {
   ];
   const view = mat4.lookAt(mat4.create(), eye, [0,0,0], [0,1,0]);
   const aspect = canvas.width / canvas.height;
-  const proj = mat4.ortho(mat4.create(), -3 * aspect, 3 * aspect, -3, 3, 0.1, 100);
+  const proj = mat4.perspective(mat4.create(), Math.PI / 4, aspect, 0.1, 100);
   const final = mat4.multiply(mat4.create(), proj, view);
   gl.uniformMatrix4fv(uMatrix, false, final);
 }
@@ -181,7 +182,7 @@ fetch('Skeleton.json')
 
 // === Dibujar todo ===
 function drawScene() {
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // <<< LIMPIA Z-BUFFER
   updateMatrix();
 
   // Plano
