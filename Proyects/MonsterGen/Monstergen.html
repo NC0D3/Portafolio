@@ -95,10 +95,10 @@ canvas.addEventListener("mousemove", e => {
 
 // === Plano XY rojo ===
 const planeVerts = new Float32Array([
-  -1, -1, 0,
-   1, -1, 0,
-   1,  1, 0,
-  -1,  1, 0
+  -1, 0, -1,
+   1, 0, -1,
+   1,  0, 1,
+  -1,  0, 1
 ]);
 const planeIdx = new Uint16Array([0,1,2, 2,3,0]);
 const planeVAO = gl.createVertexArray();
