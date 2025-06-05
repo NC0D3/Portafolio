@@ -108,6 +108,15 @@ canvas.addEventListener("mousemove", e => {
   elevation = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, elevation + dy * 0.01));
   drawScene();
 });
+// === Zoom con scroll ===
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault(); // Evita scroll de la página
+  const zoomSpeed = 0.2;
+  radius += e.deltaY * zoomSpeed * 0.01;
+  radius = Math.max(1.5, Math.min(20, radius)); // límites de zoom
+  drawScene();
+}, { passive: false });
+// === Touch control ===
 canvas.addEventListener("touchstart", e => {
   if (e.touches.length === 1) {
     dragging = true;
