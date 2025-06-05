@@ -31,25 +31,22 @@
 <script type="module">
 const canvas = document.getElementById('glcanvas');
 const gl = canvas.getContext('webgl2');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-gl.viewport(0, 0, canvas.width, canvas.height);
 gl.clearColor(1, 1, 1, 1);
 
 // === Shaders ===
-const vs = #version 300 es
+const vs = `#version 300 es
 in vec3 aPosition;
 uniform mat4 uMatrix;
 void main() {
   gl_Position = uMatrix * vec4(aPosition, 1.0);
-};
-const fs = #version 300 es
+}`;
+const fs = `#version 300 es
 precision mediump float;
 uniform vec3 uColor;
 out vec4 fragColor;
 void main() {
   fragColor = vec4(uColor, 1.0);
-};
+}`;
 
 function compileShader(src, type) {
   const s = gl.createShader(type);
@@ -82,7 +79,8 @@ function updateMatrix() {
     radius * Math.cos(elevation) * Math.cos(azimuth)
   ];
   const view = mat4.lookAt(mat4.create(), eye, [0,0,0], [0,1,0]);
-  const proj = mat4.ortho(mat4.create(), -3, 3, -3, 3, 0.1, 100);
+  const aspect = canvas.width / canvas.height;
+  const proj = mat4.ortho(mat4.create(), -3 * aspect, 3 * aspect, -3, 3, 0.1, 100);
   const final = mat4.multiply(mat4.create(), proj, view);
   gl.uniformMatrix4fv(uMatrix, false, final);
 }
@@ -151,6 +149,10 @@ fetch('Skeleton.json')
     gl.enableVertexAttribArray(aPosition);
     gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
     drawScene();
+  })
+  .catch(err => {
+    console.warn("No se pudo cargar Skeleton.json:", err);
+    drawScene(); // Aún dibuja el plano si no hay esqueleto
   });
 
 // === Dibujar todo ===
@@ -171,6 +173,16 @@ function drawScene() {
   }
 }
 
+// === Resize handler ===
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  drawScene();
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas(); // <<== MOVIDO AQUÍ
+
 // === Botones ===
 document.getElementById("btnRed").addEventListener("click", () => {
   planeColor = [1, 0, 0];
@@ -184,8 +196,6 @@ document.getElementById("btnBlue").addEventListener("click", () => {
   planeColor = [0, 0, 1];
   drawScene();
 });
-
-drawScene();
 </script>
 </body>
 </html>
