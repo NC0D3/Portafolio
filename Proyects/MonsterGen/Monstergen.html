@@ -14,7 +14,6 @@
 <script type="module">
 const canvas = document.getElementById('glcanvas');
 const gl = canvas.getContext('webgl2');
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 gl.viewport(0, 0, canvas.width, canvas.height);
@@ -30,9 +29,10 @@ void main() {
 }`;
 const fsSource = `#version 300 es
 precision mediump float;
+uniform vec3 uColor;
 out vec4 fragColor;
 void main() {
-  fragColor = vec4(0.0, 0.0, 0.0, 1.0);  // Black
+  fragColor = vec4(uColor, 1.0);
 }`;
 
 function compileShader(gl, source, type) {
@@ -50,7 +50,61 @@ gl.attachShader(program, compileShader(gl, fsSource, gl.FRAGMENT_SHADER));
 gl.linkProgram(program);
 gl.useProgram(program);
 
-// ----------- LOAD JSON -----------
+// ----------- MATRIZ ISOMÉTRICA -----------
+const isoAngle = Math.PI / 6; // 30 grados
+const cosA = Math.cos(isoAngle);
+const sinA = Math.sin(isoAngle);
+const scale = 0.2;
+
+const isoMatrix = new Float32Array([
+   scale * cosA, scale * sinA, -scale * 0.5, 0,
+  -scale,       scale,         scale * 0.5, 0,
+   0,           0,             scale,       0,
+   0,           0,             0,           1
+]);
+
+const uMatrix = gl.getUniformLocation(program, 'uMatrix');
+gl.uniformMatrix4fv(uMatrix, false, isoMatrix);
+
+const uColor = gl.getUniformLocation(program, 'uColor');
+
+// ----------- PLANO ROJO EN XY -----------
+const planeSize = 2;
+const half = planeSize / 2;
+const planeVertices = new Float32Array([
+  -half, -half, 0,
+   half, -half, 0,
+   half,  half, 0,
+  -half,  half, 0
+]);
+
+const planeIndices = new Uint16Array([
+  0, 1, 2,
+  2, 3, 0
+]);
+
+const vaoPlane = gl.createVertexArray();
+gl.bindVertexArray(vaoPlane);
+
+const planeVBO = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, planeVBO);
+gl.bufferData(gl.ARRAY_BUFFER, planeVertices, gl.STATIC_DRAW);
+
+const aPosition = gl.getAttribLocation(program, 'aPosition');
+gl.enableVertexAttribArray(aPosition);
+gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
+
+const planeEBO = gl.createBuffer();
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planeEBO);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, planeIndices, gl.STATIC_DRAW);
+
+// Dibuja plano
+gl.clear(gl.COLOR_BUFFER_BIT);
+gl.uniform3f(uColor, 1, 0, 0); // Rojo
+gl.bindVertexArray(vaoPlane);
+gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+// ----------- CARGA Y DIBUJA ESQUELETO -----------
 fetch("Skeleton.json")
   .then(res => res.json())
   .then(data => {
@@ -62,32 +116,17 @@ fetch("Skeleton.json")
       vertices.push(...joints[a], ...joints[b]);
     });
 
+    const skeletonVAO = gl.createVertexArray();
+    gl.bindVertexArray(skeletonVAO);
+
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-    const aPosition = gl.getAttribLocation(program, 'aPosition');
     gl.enableVertexAttribArray(aPosition);
     gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
 
-    const uMatrix = gl.getUniformLocation(program, 'uMatrix');
-
-    // ---------- ISO VIEW ----------
-    const isoAngle = Math.PI / 6; // 30°
-    const cosA = Math.cos(isoAngle);
-    const sinA = Math.sin(isoAngle);
-
-    const scale = 0.2;
-    const isoMatrix = new Float32Array([
-       scale * cosA, scale * sinA, -scale * 0.5, 0,
-      -scale,       scale,         scale * 0.5, 0,
-       0,           0,             scale,       0,
-       0,           0,             0,           1
-    ]);
-
-    gl.uniformMatrix4fv(uMatrix, false, isoMatrix);
-
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform3f(uColor, 0, 0, 0); // Negro
     gl.drawArrays(gl.LINES, 0, vertices.length / 3);
   });
 </script>
