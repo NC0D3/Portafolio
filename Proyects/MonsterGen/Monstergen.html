@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Skeleton Viewer</title>
+  <title>Orbit Viewer</title>
   <style>
     body { margin: 0; overflow: hidden; }
-    canvas { display: block; width: 100vw; height: 100vh; }
+    canvas { display: block; width: 100vw; height: 100vh; cursor: grab; }
   </style>
 </head>
 <body>
@@ -18,16 +18,15 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 gl.viewport(0, 0, canvas.width, canvas.height);
 gl.clearColor(1, 1, 1, 1);
-gl.clear(gl.COLOR_BUFFER_BIT);
 
-// ----------- SHADERS -----------
-const vsSource = `#version 300 es
+// === Shaders ===
+const vs = `#version 300 es
 in vec3 aPosition;
 uniform mat4 uMatrix;
 void main() {
   gl_Position = uMatrix * vec4(aPosition, 1.0);
 }`;
-const fsSource = `#version 300 es
+const fs = `#version 300 es
 precision mediump float;
 uniform vec3 uColor;
 out vec4 fragColor;
@@ -35,100 +34,126 @@ void main() {
   fragColor = vec4(uColor, 1.0);
 }`;
 
-function compileShader(gl, source, type) {
-  const shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-    throw new Error(gl.getShaderInfoLog(shader));
-  return shader;
+function compileShader(src, type) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+    throw new Error(gl.getShaderInfoLog(s));
+  return s;
 }
-
 const program = gl.createProgram();
-gl.attachShader(program, compileShader(gl, vsSource, gl.VERTEX_SHADER));
-gl.attachShader(program, compileShader(gl, fsSource, gl.FRAGMENT_SHADER));
+gl.attachShader(program, compileShader(vs, gl.VERTEX_SHADER));
+gl.attachShader(program, compileShader(fs, gl.FRAGMENT_SHADER));
 gl.linkProgram(program);
 gl.useProgram(program);
 
-// ----------- MATRIZ ISOMÉTRICA -----------
-const isoAngle = Math.PI / 6; // 30 grados
-const cosA = Math.cos(isoAngle);
-const sinA = Math.sin(isoAngle);
-const scale = 0.2;
-
-const isoMatrix = new Float32Array([
-   scale * cosA, scale * sinA, -scale * 0.5, 0,
-  -scale,       scale,         scale * 0.5, 0,
-   0,           0,             scale,       0,
-   0,           0,             0,           1
-]);
-
 const uMatrix = gl.getUniformLocation(program, 'uMatrix');
-gl.uniformMatrix4fv(uMatrix, false, isoMatrix);
-
 const uColor = gl.getUniformLocation(program, 'uColor');
+const aPosition = gl.getAttribLocation(program, 'aPosition');
 
-// ----------- PLANO ROJO EN XY -----------
-const planeSize = 2;
-const half = planeSize / 2;
-const planeVertices = new Float32Array([
-  -half, -half, 0,
-   half, -half, 0,
-   half,  half, 0,
-  -half,  half, 0
+// === Matrices ===
+import { mat4, vec3 } from 'https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/+esm';
+let azimuth = Math.PI / 4;
+let elevation = Math.PI / 6;
+let radius = 6;
+
+function updateMatrix() {
+  const eye = [
+    radius * Math.cos(elevation) * Math.sin(azimuth),
+    radius * Math.sin(elevation),
+    radius * Math.cos(elevation) * Math.cos(azimuth)
+  ];
+  const view = mat4.lookAt(mat4.create(), eye, [0,0,0], [0,1,0]);
+  const proj = mat4.ortho(mat4.create(), -3, 3, -3, 3, 0.1, 100);
+  const final = mat4.multiply(mat4.create(), proj, view);
+  gl.uniformMatrix4fv(uMatrix, false, final);
+}
+
+// === Interacción ===
+let dragging = false, lastX, lastY;
+canvas.addEventListener("mousedown", e => {
+  dragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener("mouseup", () => {
+  dragging = false;
+  canvas.style.cursor = 'grab';
+});
+canvas.addEventListener("mousemove", e => {
+  if (!dragging) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  azimuth += dx * 0.01;
+  elevation = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, elevation + dy * 0.01));
+  drawScene();
+});
+
+// === Plano XY rojo ===
+const planeVerts = new Float32Array([
+  -1, -1, 0,
+   1, -1, 0,
+   1,  1, 0,
+  -1,  1, 0
 ]);
-
-const planeIndices = new Uint16Array([
-  0, 1, 2,
-  2, 3, 0
-]);
-
-const vaoPlane = gl.createVertexArray();
-gl.bindVertexArray(vaoPlane);
-
+const planeIdx = new Uint16Array([0,1,2, 2,3,0]);
+const planeVAO = gl.createVertexArray();
+gl.bindVertexArray(planeVAO);
 const planeVBO = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, planeVBO);
-gl.bufferData(gl.ARRAY_BUFFER, planeVertices, gl.STATIC_DRAW);
-
-const aPosition = gl.getAttribLocation(program, 'aPosition');
+gl.bufferData(gl.ARRAY_BUFFER, planeVerts, gl.STATIC_DRAW);
 gl.enableVertexAttribArray(aPosition);
 gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
-
 const planeEBO = gl.createBuffer();
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planeEBO);
-gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, planeIndices, gl.STATIC_DRAW);
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, planeIdx, gl.STATIC_DRAW);
 
-// Dibuja plano
-gl.clear(gl.COLOR_BUFFER_BIT);
-gl.uniform3f(uColor, 1, 0, 0); // Rojo
-gl.bindVertexArray(vaoPlane);
-gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+// === Esqueleto ===
+let skeletonVAO = null;
+let skeletonVerts = null;
 
-// ----------- CARGA Y DIBUJA ESQUELETO -----------
-fetch("Skeleton.json")
+fetch('Skeleton.json')
   .then(res => res.json())
   .then(data => {
-    const joints = data.joints;
-    const bones = data.bones;
-
-    const vertices = [];
-    bones.forEach(([a, b]) => {
-      vertices.push(...joints[a], ...joints[b]);
+    const verts = [];
+    data.bones.forEach(([a, b]) => {
+      verts.push(...data.joints[a], ...data.joints[b]);
     });
+    skeletonVerts = verts;
 
-    const skeletonVAO = gl.createVertexArray();
+    skeletonVAO = gl.createVertexArray();
     gl.bindVertexArray(skeletonVAO);
-
-    const vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
+    const vbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(aPosition);
     gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
-
-    gl.uniform3f(uColor, 0, 0, 0); // Negro
-    gl.drawArrays(gl.LINES, 0, vertices.length / 3);
+    drawScene();
   });
+
+// === Dibujar todo ===
+function drawScene() {
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  updateMatrix();
+
+  // Plano
+  gl.bindVertexArray(planeVAO);
+  gl.uniform3f(uColor, 1, 0, 0);
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+  // Esqueleto
+  if (skeletonVAO) {
+    gl.bindVertexArray(skeletonVAO);
+    gl.uniform3f(uColor, 0, 0, 0);
+    gl.drawArrays(gl.LINES, 0, skeletonVerts.length / 3);
+  }
+}
+
+drawScene();
 </script>
 </body>
 </html>
