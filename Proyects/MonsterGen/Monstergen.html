@@ -88,7 +88,7 @@ canvas.addEventListener("mousemove", e => {
   const dy = e.clientY - lastY;
   lastX = e.clientX;
   lastY = e.clientY;
-  azimuth += dx * 0.01;
+  azimuth -= dx * 0.01;
   elevation = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, elevation + dy * 0.01));
   drawScene();
 });
