@@ -4,22 +4,22 @@
     "neck": [0, 2.0, 0],
     "spine": [0, 1.5, 0],
     "pelvis": [0, 1.0, 0],
-    
-    "left_shoulder": [-0.4, 2.0, 0],
-    "left_elbow": [-0.7, 1.7, 0],
-    "left_hand": [-0.9, 1.4, 0],
 
-    "right_shoulder": [0.4, 2.0, 0],
-    "right_elbow": [0.7, 1.7, 0],
-    "right_hand": [0.9, 1.4, 0],
+    "left_shoulder": [0, 2.0, -0.4],
+    "left_elbow": [0, 1.7, -0.7],
+    "left_hand": [0, 1.4, -0.9],
 
-    "left_hip": [-0.3, 1.0, 0],
-    "left_knee": [-0.3, 0.5, 0],
-    "left_foot": [-0.3, 0.0, 0],
+    "right_shoulder": [0, 2.0, 0.4],
+    "right_elbow": [0, 1.7, 0.7],
+    "right_hand": [0, 1.4, 0.9],
 
-    "right_hip": [0.3, 1.0, 0],
-    "right_knee": [0.3, 0.5, 0],
-    "right_foot": [0.3, 0.0, 0]
+    "left_hip": [0, 1.0, -0.3],
+    "left_knee": [0, 0.5, -0.3],
+    "left_foot": [0, 0.0, -0.3],
+
+    "right_hip": [0, 1.0, 0.3],
+    "right_knee": [0, 0.5, 0.3],
+    "right_foot": [0, 0.0, 0.3]
   },
   "bones": [
     ["head", "neck"],
