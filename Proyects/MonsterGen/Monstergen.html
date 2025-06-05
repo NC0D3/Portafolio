@@ -31,9 +31,6 @@
 <script type="module">
 const canvas = document.getElementById('glcanvas');
 const gl = canvas.getContext('webgl2');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-gl.viewport(0, 0, canvas.width, canvas.height);
 gl.clearColor(1, 1, 1, 1);
 
 // === Shaders ===
@@ -82,7 +79,8 @@ function updateMatrix() {
     radius * Math.cos(elevation) * Math.cos(azimuth)
   ];
   const view = mat4.lookAt(mat4.create(), eye, [0,0,0], [0,1,0]);
-  const proj = mat4.ortho(mat4.create(), -3, 3, -3, 3, 0.1, 100);
+  const aspect = canvas.width / canvas.height;
+  const proj = mat4.ortho(mat4.create(), -3 * aspect, 3 * aspect, -3, 3, 0.1, 100);
   const final = mat4.multiply(mat4.create(), proj, view);
   gl.uniformMatrix4fv(uMatrix, false, final);
 }
@@ -109,6 +107,16 @@ canvas.addEventListener("mousemove", e => {
   elevation = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, elevation + dy * 0.01));
   drawScene();
 });
+
+// === Resize handler ===
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  drawScene();
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas(); // Inicial
 
 // === Plano XY ===
 let planeColor = [1, 0, 0]; // rojo por defecto
@@ -185,7 +193,6 @@ document.getElementById("btnBlue").addEventListener("click", () => {
   drawScene();
 });
 
-drawScene();
 </script>
 </body>
 </html>
