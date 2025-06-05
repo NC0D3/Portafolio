@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skeleton Viewer</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+<canvas id="glcanvas"></canvas>
+
+<script type="module">
+const canvas = document.getElementById('glcanvas');
+const gl = canvas.getContext('webgl2');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+window.addEventListener('resize', resizeCanvas);
+
+// Simple 2D projection matrix
+function project([x, y, z]) {
+  return [(x + 1) * canvas.width / 2, (1 - y / 2.5) * canvas.height];
+}
+
+function drawLine(x1, y1, x2, y2) {
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+}
+
+fetch('skeleton.json')
+  .then(response => response.json())
+  .then(data => {
+    const joints = data.joints;
+    const bones = data.bones;
+
+    const projected = {};
+    for (const joint in joints) {
+      projected[joint] = project(joints[joint]);
+    }
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    bones.forEach(([a, b]) => {
+      const [x1, y1] = projected[a];
+      const [x2, y2] = projected[b];
+      drawLine(x1, y1, x2, y2);
+    });
+  });
+</script>
+</body>
+</html>
