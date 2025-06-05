@@ -6,9 +6,26 @@
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; width: 100vw; height: 100vh; cursor: grab; }
+    .controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+    }
+    .controls button {
+      padding: 10px;
+      margin-right: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+<div class="controls">
+  <button id="btnRed" style="background:red; color:white;">Rojo</button>
+  <button id="btnGreen" style="background:green; color:white;">Verde</button>
+  <button id="btnBlue" style="background:blue; color:white;">Azul</button>
+</div>
 <canvas id="glcanvas"></canvas>
 
 <script type="module">
@@ -93,7 +110,8 @@ canvas.addEventListener("mousemove", e => {
   drawScene();
 });
 
-// === Plano XY rojo ===
+// === Plano XY ===
+let planeColor = [1, 0, 0]; // rojo por defecto
 const planeVerts = new Float32Array([
   -1, 0, -1,
    1, 0, -1,
@@ -142,7 +160,7 @@ function drawScene() {
 
   // Plano
   gl.bindVertexArray(planeVAO);
-  gl.uniform3f(uColor, 1, 0, 0);
+  gl.uniform3f(uColor, ...planeColor);
   gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
   // Esqueleto
@@ -152,6 +170,20 @@ function drawScene() {
     gl.drawArrays(gl.LINES, 0, skeletonVerts.length / 3);
   }
 }
+
+// === Botones ===
+document.getElementById("btnRed").addEventListener("click", () => {
+  planeColor = [1, 0, 0];
+  drawScene();
+});
+document.getElementById("btnGreen").addEventListener("click", () => {
+  planeColor = [0, 1, 0];
+  drawScene();
+});
+document.getElementById("btnBlue").addEventListener("click", () => {
+  planeColor = [0, 0, 1];
+  drawScene();
+});
 
 drawScene();
 </script>
