@@ -107,6 +107,30 @@ canvas.addEventListener("mousemove", e => {
   elevation = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, elevation + dy * 0.01));
   drawScene();
 });
+// === Interacción táctil ===
+canvas.addEventListener("touchstart", e => {
+  if (e.touches.length === 1) {
+    dragging = true;
+    lastX = e.touches[0].clientX;
+    lastY = e.touches[0].clientY;
+    canvas.style.cursor = 'grabbing';
+  }
+});
+canvas.addEventListener("touchmove", e => {
+  if (dragging && e.touches.length === 1) {
+    const dx = e.touches[0].clientX - lastX;
+    const dy = e.touches[0].clientY - lastY;
+    lastX = e.touches[0].clientX;
+    lastY = e.touches[0].clientY;
+    azimuth -= dx * 0.01;
+    elevation = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, elevation + dy * 0.01));
+    drawScene();
+  }
+}, { passive: true });
+canvas.addEventListener("touchend", () => {
+  dragging = false;
+  canvas.style.cursor = 'grab';
+});
 
 // === Plano XY ===
 let planeColor = [1, 0, 0]; // rojo por defecto
