@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mouse Faker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let width, height;
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // Generar cuadrícula tipo QR
+    const gridSize = 64;
+    const tileSize = 8;
+    const qrCanvas = document.createElement("canvas");
+    const qrCtx = qrCanvas.getContext("2d");
+    qrCanvas.width = gridSize * tileSize;
+    qrCanvas.height = gridSize * tileSize;
+
+    function generateQRPattern() {
+      for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+          qrCtx.fillStyle = Math.random() > 0.5 ? "#000" : "#fff";
+          qrCtx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        }
+      }
+    }
+
+    generateQRPattern();
+
+    // Posición y movimiento
+    let posX = Math.random() * width;
+    let posY = Math.random() * height;
+    let angle = Math.random() * 2 * Math.PI;
+    let speed = 2;
+    let time = 0;
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Movimiento curvo (senoidal)
+      time += 0.01;
+      angle += 0.005 * Math.sin(time);
+      posX += speed * Math.cos(angle);
+      posY += speed * Math.sin(angle);
+
+      // Rebote en bordes
+      if (posX < 0 || posX + qrCanvas.width > width) {
+        angle = Math.PI - angle;
+      }
+      if (posY < 0 || posY + qrCanvas.height > height) {
+        angle = -angle;
+      }
+
+      ctx.drawImage(qrCanvas, posX, posY);
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
