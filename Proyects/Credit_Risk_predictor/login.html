@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    body {
+      background: linear-gradient(120deg, #f7cac9 0%, #92a8d1 100%);
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #loginForm {
+      background: #fff;
+      padding: 2em 3em;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(80,80,80,0.18);
+      min-width: 320px;
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2em;
+    }
+    label {
+      color: #555;
+      font-size: 1.1em;
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 8px;
+    }
+    input[type="text"], input[type="password"] {
+      margin-top: 7px;
+      padding: 0.7em;
+      font-size: 1.05em;
+      border: 1px solid #e57373;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: #ad1457;
+    }
+    button {
+      background: linear-gradient(90deg, #e53935 0%, #ad1457 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85em 0;
+      font-size: 1.18em;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(229,57,53,0.15);
+      margin-top: 8px;
+      transition: background 0.2s, transform 0.17s;
+    }
+    button:hover, button:focus {
+      background: linear-gradient(90deg, #ad1457 0%, #e53935 100%);
+      transform: scale(1.06);
+    }
+  </style>
+</head>
+<body>
+  <h2>Login</h2>
+  <form id="loginForm" method="POST" action="/login">
+    <label>Usuario:
+      <input type="text" name="usuario" required autocomplete="username">
+    </label>
+    <label>Contraseña:
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <button type="submit">Ingresar</button>
+  </form>
+</body>
+</html>
