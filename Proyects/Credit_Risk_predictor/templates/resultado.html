@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Resultado del Registro</title>
+  <style>
+    body {
+      background: linear-gradient(120deg, #92a8d1 0%, #f7cac9 100%);
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .resultado-card {
+      background: #fff;
+      padding: 2em 3em;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(80,80,80,0.18);
+      min-width: 320px;
+      max-width: 390px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.5em 0;
+      width: 100%;
+    }
+    li {
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      color: #333;
+    }
+    .estado {
+      font-size: 1.22em;
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 6px;
+      padding: 0.5em 0;
+      border-radius: 8px;
+      width: 100%;
+      text-align: center;
+    }
+    .aprobado {
+      background: #e2f7e1;
+      color: #388e3c;
+      border: 1px solid #b2dfdb;
+    }
+    .rechazado {
+      background: #ffe2e2;
+      color: #d32f2f;
+      border: 1px solid #ffcdd2;
+    }
+    .botones {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      width: 100%;
+      margin-top: 18px;
+    }
+    .boton {
+      background: linear-gradient(90deg, #ad1457 0%, #e53935 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.78em 1.7em;
+      font-size: 1.13em;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(229,57,53,0.15);
+      text-decoration: none;
+      transition: background 0.2s, transform 0.17s;
+      text-align: center;
+      display: block;
+    }
+    .boton.regresar {
+      background: linear-gradient(90deg, #92a8d1 0%, #ad1457 100%);
+    }
+    .boton:hover, .boton:focus {
+      background: linear-gradient(90deg, #e53935 0%, #ad1457 100%);
+      transform: scale(1.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="resultado-card">
+    <h2 style="color:#ad1457;">¡Registro recibido!</h2>
+    <ul>
+        <li><b>Nombre:</b> {{ nombre }}</li>
+        <li><b>Edad:</b> {{ edad }}</li>
+        <li><b>Género:</b> {{ genero }}</li>
+        <li><b>Salario anual:</b> ${{ salario }}</li>
+    </ul>
+    <li style="margin-bottom:8px;font-weight:bold;">
+        <span style="color:{{ 'green' if aprobado else 'red' }};">
+          {{ '✅ Aprobado' if aprobado else '❌ Rechazado' }}
+        </span>
+    <div class="botones">
+      <a href="/registro" class="boton regresar">Regresar</a>
+      <a href="/logout" class="boton">Cerrar sesión</a>
+    </div>
+  </div>
+</body>
+</html>
