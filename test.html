@@ -1,0 +1,2417 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#02030a">
+<meta name="color-scheme" content="dark">
+<title>Raymundo Mendoza Cardenas | The Creative Engineer</title>
+
+<style>
+:root {
+    color-scheme: dark;
+    --cyan: #9be7ff;
+    --cyan-bright: #5be1ff;
+    --panel: rgba(5, 10, 22, .96);
+    --border: rgba(160, 205, 255, .23);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --card-width: 290px;
+    --card-shadow: 0 18px 50px rgba(0, 0, 0, .48);
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: #02030a;
+    color: #eef5ff;
+    font-family: Inter, "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+    position: relative;
+    isolation: isolate;
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    display: block;
+    touch-action: none;
+    cursor: grab;
+    outline: none;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+.ui {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    padding:
+        calc(25px + var(--safe-top))
+        calc(25px + var(--safe-right))
+        calc(25px + var(--safe-bottom))
+        calc(25px + var(--safe-left));
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+header {
+    width: fit-content;
+    max-width: min(520px, 100%);
+    min-width: 0;
+}
+
+.kicker {
+    color: var(--cyan);
+    font-size: clamp(9px, 1vw, 10px);
+    letter-spacing: .25em;
+    line-height: 1.7;
+    font-weight: 700;
+    text-transform: uppercase;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+h1 {
+    margin: 9px 0;
+    font-size: clamp(29px, 4vw, 54px);
+    line-height: .98;
+    letter-spacing: -.055em;
+    font-weight: 650;
+    text-wrap: balance;
+}
+
+.subtitle {
+    color: #aab9d4;
+    font-size: 12px;
+    line-height: 1.65;
+    max-width: 410px;
+}
+
+.bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.hint {
+    color: #9babc5;
+    font-size: 11px;
+    text-align: right;
+    line-height: 1.8;
+    text-shadow: 0 1px 6px #000;
+}
+
+/* =========================================================
+   PUNTOS INTERACTIVOS
+   El hotspot no usa transform: así las cards fixed en móvil
+   no quedan atrapadas en el sistema de coordenadas del punto.
+   ========================================================= */
+
+#star-hotspots {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.star-hotspot {
+    position: absolute;
+    left: -1000px;
+    top: -1000px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: none;
+    transform: none;
+    display: block;
+    text-decoration: none;
+    color: white;
+    outline: none;
+    opacity: 0;
+    visibility: hidden;
+    touch-action: manipulation;
+}
+
+.star-hotspot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--star-color, #9be7ff) 75%, white);
+    background: radial-gradient(
+        circle,
+        transparent 62%,
+        color-mix(in srgb, var(--star-color, #9be7ff) 4%, transparent) 83%,
+        transparent 100%
+    );
+    box-shadow:
+        0 0 2px color-mix(in srgb, var(--star-color, #9be7ff) 38%, transparent),
+        0 0 5px color-mix(in srgb, var(--star-color, #9be7ff) 20%, transparent);
+    opacity: .48;
+    pointer-events: none;
+
+    -webkit-mask-image: radial-gradient(
+        circle at var(--occ-x, -1000px) var(--occ-y, -1000px),
+        transparent 0,
+        transparent max(0px, calc(var(--occ-r, 0px) - .5px)),
+        #000 calc(var(--occ-r, 0px) + .5px)
+    );
+    mask-image: radial-gradient(
+        circle at var(--occ-x, -1000px) var(--occ-y, -1000px),
+        transparent 0,
+        transparent max(0px, calc(var(--occ-r, 0px) - .5px)),
+        #000 calc(var(--occ-r, 0px) + .5px)
+    );
+    transition: opacity .18s ease, box-shadow .18s ease;
+}
+
+.star-hotspot:hover::before,
+.star-hotspot:focus-visible::before,
+.star-hotspot.tooltip-open::before {
+    opacity: .9;
+    box-shadow:
+        0 0 3px color-mix(in srgb, var(--star-color, #9be7ff) 65%, transparent),
+        0 0 8px color-mix(in srgb, var(--star-color, #9be7ff) 35%, transparent);
+}
+
+.star-hotspot.visible {
+    visibility: visible;
+}
+
+/* =========================================================
+   CARD TECNOLÓGICA
+   Escritorio: panel flotante junto al planeta.
+   Móvil: panel fixed independiente del tamaño del planeta.
+   ========================================================= */
+
+.star-tooltip,
+.star-hotspot.tooltip-left .star-tooltip {
+    position: absolute;
+    z-index: 30;
+
+    /* Evita que el ancho del contenido expanda la tarjeta. */
+    box-sizing: border-box;
+    width: var(--card-width);
+    min-width: 0;
+    max-width: min(
+        var(--card-width),
+        calc(100vw - 28px - var(--safe-left) - var(--safe-right))
+    );
+
+    left: calc(100% + 14px);
+    right: auto;
+    top: 50%;
+
+    display: block;
+    padding: 0;
+    margin: 0;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    white-space: normal;
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--star-color, var(--cyan)) 46%,
+        rgba(145, 190, 230, .24)
+    );
+    border-radius: 5px;
+
+    background:
+        linear-gradient(
+            115deg,
+            rgba(8, 24, 43, .985) 0%,
+            rgba(4, 12, 26, .985) 55%,
+            rgba(3, 7, 18, .99) 100%
+        );
+
+    box-shadow:
+        var(--card-shadow),
+        0 0 0 1px rgba(91, 225, 255, .035) inset,
+        0 0 24px color-mix(
+            in srgb,
+            var(--star-color, var(--cyan)) 10%,
+            transparent
+        );
+
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translate(8px, -50%);
+    transform-origin: left center;
+    transition:
+        opacity .18s ease,
+        transform .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease;
+
+    isolation: isolate;
+}
+
+/* Línea superior de acento. */
+.star-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--star-color, var(--cyan)) 20%,
+        #d8f7ff 55%,
+        var(--star-color, var(--cyan)) 80%,
+        transparent 100%
+    );
+    opacity: .9;
+    pointer-events: none;
+}
+
+/* Esquina técnica superior izquierda. */
+.star-tooltip .tooltip-index::before {
+    content: "";
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin: 0 7px 1px 0;
+    background: var(--star-color, var(--cyan));
+    box-shadow: 0 0 8px var(--star-color, var(--cyan));
+    transform: rotate(45deg);
+}
+
+/* Triángulo de conexión al planeta. */
+.star-tooltip:not(.mobile-card)::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background: #08182b;
+    border-left: 1px solid var(--star-color, var(--cyan));
+    border-bottom: 1px solid var(--star-color, var(--cyan));
+    transform: translateY(-50%) rotate(45deg);
+}
+
+/* Panel al lado izquierdo cuando el planeta está a la derecha. */
+.star-hotspot.tooltip-left .star-tooltip {
+    left: auto;
+    right: calc(100% + 14px);
+    transform: translate(-8px, -50%);
+    transform-origin: right center;
+}
+
+.star-hotspot.tooltip-left .star-tooltip::before {
+    left: auto;
+    right: -5px;
+    border: 0;
+    border-top: 1px solid var(--star-color, var(--cyan));
+    border-right: 1px solid var(--star-color, var(--cyan));
+}
+
+.star-hotspot:hover .star-tooltip,
+.star-hotspot:focus-visible .star-tooltip,
+.star-hotspot.tooltip-open .star-tooltip {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(0, -50%);
+}
+
+.star-hotspot.tooltip-left:hover .star-tooltip,
+.star-hotspot.tooltip-left:focus-visible .star-tooltip,
+.star-hotspot.tooltip-left.tooltip-open .star-tooltip {
+    transform: translate(0, -50%);
+}
+
+/* Encabezado de tarjeta: identificador + estado. */
+.tooltip-index {
+    display: block;
+    min-width: 0;
+    padding: 16px 17px 10px;
+    margin: 0;
+
+    color: var(--star-color, var(--cyan));
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .16em;
+    line-height: 1.5;
+    text-transform: uppercase;
+
+    border-bottom: 1px solid rgba(155, 231, 255, .12);
+    overflow-wrap: anywhere;
+}
+
+/* Etiqueta de estado en el encabezado. */
+.tooltip-index::after {
+    content: "SYSTEM / ONLINE";
+    display: block;
+    margin-top: 5px;
+    color: rgba(174, 198, 224, .55);
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: .14em;
+}
+
+/* Título principal. */
+.tooltip-title {
+    display: block;
+    min-width: 0;
+    padding: 15px 17px 0;
+    margin: 0;
+
+    color: #f0f8ff;
+    font-size: clamp(17px, 1.4vw, 20px);
+    font-weight: 680;
+    letter-spacing: -.035em;
+    line-height: 1.2;
+
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+/* Descripción. */
+.tooltip-description {
+    display: block;
+    min-width: 0;
+    padding: 0 17px;
+    margin: 8px 0 0;
+
+    color: #9dafc8;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.7;
+
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+/* Pie de tarjeta: ruta + indicador de navegación. */
+.tooltip-destination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-width: 0;
+    margin: 16px 0 0;
+    padding: 12px 17px 13px;
+
+    border-top: 1px solid rgba(155, 231, 255, .13);
+    background: rgba(91, 225, 255, .035);
+
+    color: var(--star-color, var(--cyan));
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .045em;
+}
+
+.tooltip-destination > span:first-child {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.tooltip-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--star-color, var(--cyan)) 35%,
+        transparent
+    );
+    border-radius: 3px;
+
+    color: var(--star-color, var(--cyan));
+    font-size: 15px;
+    line-height: 1;
+
+    transition:
+        transform .18s ease,
+        background .18s ease,
+        border-color .18s ease;
+}
+
+.star-hotspot:hover .tooltip-arrow,
+.star-hotspot:focus-visible .tooltip-arrow {
+    transform: translate(2px, -2px);
+    background: color-mix(
+        in srgb,
+        var(--star-color, var(--cyan)) 10%,
+        transparent
+    );
+    border-color: var(--star-color, var(--cyan));
+}
+
+/* =========================================================
+   ESTADO Y ERRORES
+   ========================================================= */
+
+#status {
+    position: fixed;
+    z-index: 5;
+    right: calc(25px + var(--safe-right));
+    bottom: calc(22px + var(--safe-bottom));
+    max-width: calc(100vw - 40px);
+    color: #8192b0;
+    font-size: 10px;
+    letter-spacing: .1em;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    text-shadow: 0 1px 6px #000;
+}
+
+#error {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    top: calc(50% + var(--safe-top) / 2);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #180d13;
+    border: 1px solid #c66;
+    border-radius: 10px;
+    padding: 20px;
+    width: min(700px, calc(100vw - 28px));
+    max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom));
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: #ffd9d9;
+    font: 12px/1.6 monospace;
+    box-shadow: 0 15px 60px #000b;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .ui {
+        padding:
+            calc(21px + var(--safe-top))
+            calc(21px + var(--safe-right))
+            calc(21px + var(--safe-bottom))
+            calc(21px + var(--safe-left));
+    }
+
+    h1 {
+        font-size: clamp(28px, 5.3vw, 44px);
+    }
+
+    :root {
+        --card-width: 270px;
+    }
+
+    .tooltip-title {
+        font-size: 18px;
+    }
+}
+
+/* =========================================================
+   MÓVIL
+   El panel está fijado al viewport, no a las coordenadas de
+   la esfera. El hotspot no tiene transform, para que fixed
+   funcione realmente respecto a la pantalla.
+   ========================================================= */
+
+@media (max-width: 600px) {
+    .ui {
+        padding:
+            calc(16px + var(--safe-top))
+            calc(15px + var(--safe-right))
+            calc(16px + var(--safe-bottom))
+            calc(15px + var(--safe-left));
+        gap: 12px;
+    }
+
+    header {
+        max-width: min(100%, 390px);
+    }
+
+    .kicker {
+        max-width: 100%;
+        font-size: 8px;
+        letter-spacing: .16em;
+        line-height: 1.55;
+    }
+
+    h1 {
+        margin: 8px 0 0;
+        font-size: clamp(26px, 8.4vw, 39px);
+        line-height: .98;
+        letter-spacing: -.055em;
+    }
+
+    .subtitle {
+        font-size: 11px;
+        max-width: 300px;
+    }
+
+    .bottom {
+        align-items: flex-end;
+    }
+
+    .hint {
+        display: none;
+    }
+
+    #status {
+        right: calc(12px + var(--safe-right));
+        bottom: calc(10px + var(--safe-bottom));
+        max-width: calc(100vw - 24px);
+        font-size: 8px;
+        letter-spacing: .06em;
+    }
+
+    /*
+      IMPORTANTE:
+      En móvil, el panel ya no usa el ancho ni el alto de la
+      esfera como referencia. Su geometría depende únicamente
+      del viewport y las áreas seguras del dispositivo.
+    */
+    .star-tooltip,
+    .star-hotspot.tooltip-left .star-tooltip {
+        position: fixed;
+
+        left: calc(12px + var(--safe-left));
+        right: calc(12px + var(--safe-right));
+        top: auto;
+        bottom: calc(30px + var(--safe-bottom));
+
+        width: auto;
+        min-width: 0;
+        max-width: 440px;
+        max-height: min(
+            44dvh,
+            320px,
+            calc(100dvh - 30px - var(--safe-top) - var(--safe-bottom))
+        );
+
+        margin-inline: auto;
+        padding: 0;
+
+        display: block;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+
+        border-radius: 5px;
+        border: 1px solid color-mix(
+            in srgb,
+            var(--star-color, var(--cyan)) 48%,
+            rgba(145, 190, 230, .2)
+        );
+
+        background:
+            linear-gradient(
+                115deg,
+                rgba(8, 24, 43, .99) 0%,
+                rgba(4, 12, 26, .99) 58%,
+                rgba(3, 7, 18, .99) 100%
+            );
+
+        box-shadow:
+            0 18px 55px rgba(0, 0, 0, .66),
+            0 0 26px color-mix(
+                in srgb,
+                var(--star-color, var(--cyan)) 12%,
+                transparent
+            );
+
+        transform: translateY(12px);
+        transform-origin: center bottom;
+    }
+
+    /* No necesitamos una flecha de conexión en el panel móvil. */
+    .star-tooltip::before,
+    .star-hotspot.tooltip-left .star-tooltip::before {
+        display: none;
+    }
+
+    .star-hotspot:hover .star-tooltip,
+    .star-hotspot:focus-visible .star-tooltip,
+    .star-hotspot.tooltip-open .star-tooltip,
+    .star-hotspot.tooltip-left:hover .star-tooltip,
+    .star-hotspot.tooltip-left:focus-visible .star-tooltip,
+    .star-hotspot.tooltip-left.tooltip-open .star-tooltip {
+        transform: translateY(0);
+    }
+
+    .tooltip-index {
+        padding: 13px 15px 9px;
+        font-size: 8px;
+        letter-spacing: .14em;
+    }
+
+    .tooltip-index::after {
+        margin-top: 4px;
+        font-size: 7px;
+    }
+
+    .tooltip-title {
+        padding: 13px 15px 0;
+        font-size: 19px;
+        line-height: 1.2;
+    }
+
+    .tooltip-description {
+        padding: 0 15px;
+        margin-top: 7px;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    .tooltip-destination {
+        gap: 9px;
+        margin-top: 12px;
+        padding: 10px 15px;
+        font-size: 9px;
+    }
+
+    .tooltip-arrow {
+        flex-basis: 25px;
+        width: 25px;
+        height: 25px;
+    }
+
+    .star-hotspot::before {
+        opacity: .75;
+    }
+
+    .star-hotspot.tooltip-open::before {
+        opacity: 1;
+    }
+
+    #error {
+        padding: 15px;
+        font-size: 11px;
+        border-radius: 8px;
+    }
+}
+
+/* =========================================================
+   MÓVILES MUY PEQUEÑOS
+   ========================================================= */
+
+@media (max-width: 360px) {
+    .ui {
+        padding:
+            calc(12px + var(--safe-top))
+            calc(12px + var(--safe-right))
+            calc(12px + var(--safe-bottom))
+            calc(12px + var(--safe-left));
+    }
+
+    .kicker {
+        font-size: 7px;
+        letter-spacing: .12em;
+    }
+
+    h1 {
+        font-size: clamp(24px, 8.1vw, 29px);
+    }
+
+    #status {
+        font-size: 7px;
+    }
+
+    .star-tooltip,
+    .star-hotspot.tooltip-left .star-tooltip {
+        left: calc(9px + var(--safe-left));
+        right: calc(9px + var(--safe-right));
+        bottom: calc(26px + var(--safe-bottom));
+        max-height: min(
+            46dvh,
+            290px,
+            calc(100dvh - 25px - var(--safe-top) - var(--safe-bottom))
+        );
+    }
+
+    .tooltip-index {
+        padding: 11px 12px 8px;
+    }
+
+    .tooltip-title {
+        padding: 11px 12px 0;
+        font-size: 17px;
+    }
+
+    .tooltip-description {
+        padding: 0 12px;
+        font-size: 11px;
+    }
+
+    .tooltip-destination {
+        padding: 9px 12px;
+    }
+}
+
+/* =========================================================
+   MÓVIL EN HORIZONTAL
+   ========================================================= */
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .ui {
+        padding:
+            calc(10px + var(--safe-top))
+            calc(16px + var(--safe-right))
+            calc(10px + var(--safe-bottom))
+            calc(16px + var(--safe-left));
+    }
+
+    .kicker {
+        font-size: 7px;
+        letter-spacing: .13em;
+    }
+
+    h1 {
+        margin-top: 5px;
+        font-size: clamp(21px, 5.5vh, 31px);
+    }
+
+    .hint {
+        display: none;
+    }
+
+    #status {
+        right: calc(10px + var(--safe-right));
+        bottom: calc(7px + var(--safe-bottom));
+        font-size: 7px;
+    }
+
+    .star-tooltip,
+    .star-hotspot.tooltip-left .star-tooltip {
+        left: calc(10px + var(--safe-left));
+        right: calc(10px + var(--safe-right));
+        bottom: calc(22px + var(--safe-bottom));
+        max-height: min(
+            58dvh,
+            calc(100dvh - 20px - var(--safe-top) - var(--safe-bottom))
+        );
+    }
+
+    .tooltip-index {
+        padding-top: 9px;
+        padding-bottom: 7px;
+    }
+
+    .tooltip-title {
+        padding-top: 9px;
+        font-size: 16px;
+    }
+
+    .tooltip-description {
+        font-size: 11px;
+        line-height: 1.45;
+    }
+
+    .tooltip-destination {
+        margin-top: 8px;
+        padding-top: 7px;
+        padding-bottom: 8px;
+    }
+}
+
+/* Accesibilidad y movimiento reducido. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+    }
+}
+</style>
+</head>
+
+<body>
+<canvas id="gl" aria-label="Simulación tridimensional de un agujero negro"></canvas>
+
+<div class="ui">
+    <header>
+        <div class="kicker">Raymundo Mendoza Cardenas · The Creative Engineer</div>
+        <h1>CREATIVITY<br>BEHIND INNOVATION</h1>
+    </header>
+
+    <div class="bottom">
+        <div class="hint">
+            ARRASTRAR · ORBITAR<br>
+            RUEDA DEL RATÓN · ZOOM<br>
+            DOBLE CLIC · RESTABLECER CÁMARA<br>
+            HOVER SOBRE UNA ESFERA · EXPLORAR
+        </div>
+    </div>
+</div>
+
+<nav id="star-hotspots" aria-label="Explorar secciones de Cenzo Labs">
+    <a class="star-hotspot" href="Projects/index.html" aria-label="Explorar Proyectos">
+        <span class="star-tooltip">
+            <span class="tooltip-index">01 / EXPLORAR</span>
+            <span class="tooltip-title">Proyectos</span>
+            <span class="tooltip-description">Ingeniería, desarrollo e innovación multidisciplinaria.</span>
+            <span class="tooltip-destination"><span>/proyectos/</span><span class="tooltip-arrow">↗</span></span>
+        </span>
+    </a>
+
+    <a class="star-hotspot" href="/laboratorios/" aria-label="Explorar Laboratorios">
+        <span class="star-tooltip">
+            <span class="tooltip-index">02 / INVESTIGAR</span>
+            <span class="tooltip-title">Laboratorios</span>
+            <span class="tooltip-description">Experimentación, investigación y ciencia aplicada.</span>
+            <span class="tooltip-destination"><span>/laboratorios/</span><span class="tooltip-arrow">↗</span></span>
+        </span>
+    </a>
+
+    <a class="star-hotspot" href="/tecnologias/" aria-label="Explorar Tecnologías">
+        <span class="star-tooltip">
+            <span class="tooltip-index">03 / CONSTRUIR</span>
+            <span class="tooltip-title">Tecnologías</span>
+            <span class="tooltip-description">Hardware, software y sistemas integrados.</span>
+            <span class="tooltip-destination"><span>/tecnologias/</span><span class="tooltip-arrow">↗</span></span>
+        </span>
+    </a>
+
+    <a class="star-hotspot" href="/documentacion/" aria-label="Explorar Documentación">
+        <span class="star-tooltip">
+            <span class="tooltip-index">04 / CONOCIMIENTO</span>
+            <span class="tooltip-title">Documentación</span>
+            <span class="tooltip-description">Métodos, recursos y conocimiento técnico.</span>
+            <span class="tooltip-destination"><span>/documentacion/</span><span class="tooltip-arrow">↗</span></span>
+        </span>
+    </a>
+
+    <a class="star-hotspot" href="/contacto/" aria-label="Explorar Contacto">
+        <span class="star-tooltip">
+            <span class="tooltip-index">05 / CONECTAR</span>
+            <span class="tooltip-title">Contacto</span>
+            <span class="tooltip-description">Conectemos ideas, disciplinas y proyectos.</span>
+            <span class="tooltip-destination"><span>/contacto/</span><span class="tooltip-arrow">↗</span></span>
+        </span>
+    </a>
+</nav>
+
+<div id="status">INICIALIZANDO GPU...</div>
+<div id="error" role="alert"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* CONFIGURACIÓN INTERNA */
+const FIXED_MASS = 0.68;
+const FIXED_DISK_EMISSION = 64.0;
+const TRACE_STEPS = 232;
+const MAX_NAV_STARS = 32;
+const FIXED_SPIN = 1.0;
+
+const INITIAL_DISTANCE = 12;
+const MIN_DISTANCE = 4;
+const MAX_ZOOM_OUT_STEPS = 13;
+const WHEEL_STEP_PIXELS = 100;
+const ZOOM_PER_STEP = 1.06;
+const MIN_RENDER_SCALE = 0.55;
+
+const $ = id => document.getElementById(id);
+const canvas = $("gl");
+const status = $("status");
+const errorBox = $("error");
+const hotspotContainer = $("star-hotspots");
+
+const controls = {
+    stars: { checked: true },
+    particles: { checked: true },
+    grid: { checked: false }
+};
+
+let hotspots = [];
+let NAV_STARS = [];
+
+let zoomSteps = 0;
+let yaw = 0.28;
+let pitch = 0.20;
+let distance = INITIAL_DISTANCE;
+let dragging = false;
+let lastX = 0;
+let lastY = 0;
+let paused = false;
+let elapsed = 0;
+let lastFrameTime = 0;
+let rafId = 0;
+let dirty = true;
+let hotspotsDirty = true;
+let contextLost = false;
+let fpsTime = 0;
+let fpsFrames = 0;
+let displayedFPS = 0;
+let lowFPSWindows = 0;
+let highFPSWindows = 0;
+let adaptiveTime = 0;
+
+/* Gestos multitáctiles */
+const activePointers = new Map();
+let lastPinchDistance = 0;
+
+const deviceScale = Math.min(window.devicePixelRatio || 1, 1);
+let resolutionScale = deviceScale;
+
+function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+}
+
+function randomRange(min, max) {
+    return min + Math.random() * (max - min);
+}
+
+function normalize3(v) {
+    const len = Math.hypot(v[0], v[1], v[2]) || 1;
+    return [v[0] / len, v[1] / len, v[2] / len];
+}
+
+function dot3(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function subtract3(a, b) {
+    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function cross3(a, b) {
+    return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+    ];
+}
+
+function cameraPosition() {
+    return [
+        distance * Math.cos(pitch) * Math.sin(yaw),
+        distance * Math.sin(pitch),
+        distance * Math.cos(pitch) * Math.cos(yaw)
+    ];
+}
+
+function invalidate(cameraChanged = false) {
+    dirty = true;
+    if (cameraChanged) hotspotsDirty = true;
+
+    if (!rafId && !document.hidden && !contextLost) {
+        rafId = requestAnimationFrame(render);
+    }
+}
+
+function updateZoom(delta) {
+    zoomSteps = clamp(zoomSteps + delta, -8, MAX_ZOOM_OUT_STEPS);
+
+    distance = clamp(
+        INITIAL_DISTANCE * Math.pow(ZOOM_PER_STEP, zoomSteps),
+        MIN_DISTANCE,
+        INITIAL_DISTANCE * Math.pow(ZOOM_PER_STEP, MAX_ZOOM_OUT_STEPS)
+    );
+
+    invalidate(true);
+}
+
+function resetCamera() {
+    yaw = 0.28;
+    pitch = 0.20;
+    zoomSteps = 0;
+    distance = INITIAL_DISTANCE;
+    invalidate(true);
+}
+
+/* COLORES Y PLANETAS */
+
+function hsvToRgb(h, s, v) {
+    h = ((h % 360) + 360) % 360;
+
+    const c = v * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = v - c;
+    let rgb;
+
+    if (h < 60) rgb = [c, x, 0];
+    else if (h < 120) rgb = [x, c, 0];
+    else if (h < 180) rgb = [0, c, x];
+    else if (h < 240) rgb = [0, x, c];
+    else if (h < 300) rgb = [x, 0, c];
+    else rgb = [c, 0, x];
+
+    return rgb.map(n => n + m);
+}
+
+function rgbToHex(rgb) {
+    return "#" + rgb.map(v =>
+        Math.round(clamp(v, 0, 1) * 255).toString(16).padStart(2, "0")
+    ).join("");
+}
+
+function hexToRgb(hex) {
+    const clean = hex.replace("#", "").trim();
+
+    if (!/^[0-9a-fA-F]{6}$/.test(clean)) return null;
+
+    return [
+        parseInt(clean.slice(0, 2), 16) / 255,
+        parseInt(clean.slice(2, 4), 16) / 255,
+        parseInt(clean.slice(4, 6), 16) / 255
+    ];
+}
+
+function getPlanetTitle(element, index) {
+    const title = element.querySelector(".tooltip-title");
+
+    if (title && title.textContent.trim()) {
+        return title.textContent.trim();
+    }
+
+    const aria = element.getAttribute("aria-label");
+
+    if (aria) {
+        return aria.replace(/^Explorar\s+/i, "").trim();
+    }
+
+    return "Sección " + (index + 1);
+}
+
+function getPlanetColor(element) {
+    const supplied = element.dataset.color;
+
+    if (supplied && hexToRgb(supplied)) {
+        return hexToRgb(supplied);
+    }
+
+    return hsvToRgb(
+        randomRange(0, 360),
+        randomRange(0.58, 0.95),
+        randomRange(0.62, 1)
+    );
+}
+
+function createPlanet(element, index, count) {
+    const suppliedDistance = Number(element.dataset.distance);
+    const suppliedHeight = Number(element.dataset.height);
+    const suppliedRadius = Number(element.dataset.radius);
+
+    const angleStep = (Math.PI * 2) / Math.max(count, 1);
+    const angle = index * angleStep +
+        randomRange(-angleStep * 0.48, angleStep * 0.48) +
+        randomRange(-0.24, 0.24);
+
+    const distanceRandom = Math.random();
+    let orbitalDistance;
+
+    if (distanceRandom < 0.22) orbitalDistance = randomRange(12.5, 14.5);
+    else if (distanceRandom < 0.72) orbitalDistance = randomRange(14.0, 16.5);
+    else orbitalDistance = randomRange(16.0, 21.0);
+
+    const heightRandom = Math.random();
+    let height;
+
+    if (heightRandom < 0.48) height = randomRange(-2.6, 2.6);
+    else if (heightRandom < 0.83) height = randomRange(-5.8, 5.8);
+    else height = randomRange(-8.5, 8.5);
+
+    const inclination = randomRange(-0.19, 0.19);
+    const tiltedDistance = orbitalDistance * Math.cos(inclination);
+
+    height += Math.sin(angle * 1.7 + index * 0.83) *
+        orbitalDistance * Math.sin(inclination) * 0.28;
+
+    if (
+        element.dataset.distance !== undefined &&
+        Number.isFinite(suppliedDistance) &&
+        suppliedDistance > 0
+    ) {
+        orbitalDistance = suppliedDistance;
+    }
+
+    if (
+        element.dataset.height !== undefined &&
+        Number.isFinite(suppliedHeight)
+    ) {
+        height = suppliedHeight;
+    }
+
+    const finalDistance =
+        element.dataset.distance !== undefined &&
+        Number.isFinite(suppliedDistance) &&
+        suppliedDistance > 0
+            ? suppliedDistance
+            : tiltedDistance;
+
+    const radius =
+        element.dataset.radius !== undefined &&
+        Number.isFinite(suppliedRadius) &&
+        suppliedRadius > 0
+            ? suppliedRadius
+            : randomRange(1.015, 1.74);
+
+    const color = getPlanetColor(element);
+    const url = element.getAttribute("href") || "#";
+    const title = getPlanetTitle(element, index);
+
+    element.dataset.star = String(index);
+    element.style.setProperty("--star-color", rgbToHex(color));
+
+    const indexNode = element.querySelector(".tooltip-index");
+
+    if (indexNode) {
+        if (!indexNode.dataset.originalText) {
+            indexNode.dataset.originalText = indexNode.textContent.trim();
+        }
+
+        const oldText = indexNode.dataset.originalText;
+        const suffix = oldText.includes("/")
+            ? oldText.slice(oldText.indexOf("/")).trim()
+            : "/ EXPLORAR";
+
+        indexNode.textContent =
+            String(index + 1).padStart(2, "0") + " " + suffix;
+    }
+
+    const destination = element.querySelector(
+        ".tooltip-destination > span:first-child"
+    );
+
+    if (destination) {
+        destination.textContent = url;
+    }
+
+    if (!element.getAttribute("aria-label")) {
+        element.setAttribute("aria-label", "Explorar " + title);
+    }
+
+    return {
+        element,
+        name: title,
+        url,
+        position: [
+            Math.cos(angle) * finalDistance,
+            height,
+            Math.sin(angle) * finalDistance
+        ],
+        radius,
+        color,
+        colorHex: rgbToHex(color),
+        index
+    };
+}
+
+/* WEBGL */
+
+let gl;
+
+try {
+    gl = canvas.getContext("webgl", {
+        alpha: false,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        powerPreference: "high-performance",
+        preserveDrawingBuffer: false
+    });
+} catch (_) {
+    gl = null;
+}
+
+if (!gl) {
+    errorBox.style.display = "block";
+    errorBox.textContent =
+        "No se pudo inicializar WebGL. Activa la aceleración por hardware o utiliza un navegador compatible.";
+    return;
+}
+
+const vertexShader = `
+attribute vec2 position;
+
+void main() {
+    gl_Position = vec4(position, 0.0, 1.0);
+}
+`;
+
+const fragmentShader = `
+precision highp float;
+
+uniform vec2 uResolution;
+uniform float uTime;
+uniform vec3 uCamera;
+uniform float uMass;
+uniform float uDisk;
+uniform float uSpin;
+uniform float uSteps;
+uniform float uStars;
+uniform float uParticles;
+uniform float uGrid;
+uniform float uNavCount;
+
+uniform vec3 uNavPositions[${MAX_NAV_STARS}];
+uniform vec3 uNavColors[${MAX_NAV_STARS}];
+uniform float uNavRadii[${MAX_NAV_STARS}];
+
+#define PI 3.141592653589793
+#define MAX_TRACE_STEPS 232
+#define PARTICLE_COUNT 18
+#define MAX_NAV ${MAX_NAV_STARS}
+
+float hash21(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+float hash11(float p) {
+    p = fract(p * 0.1031);
+    p *= p + 33.33;
+    p = p * (p + 33.33);
+    return fract(p * (p + 33.33));
+}
+
+vec3 starField(vec3 direction) {
+    vec3 d = normalize(direction);
+    float longitude = atan(d.z, d.x);
+    float latitude = asin(clamp(d.y, -1.0, 1.0));
+    vec2 uv = vec2(longitude * 2.7, latitude * 2.7);
+    vec3 col = vec3(0.0015, 0.002, 0.008);
+
+    for (int layer = 0; layer < 3; layer++) {
+        float scale = 65.0 * pow(1.85, float(layer));
+        vec2 cell = uv * scale;
+        vec2 id = floor(cell);
+        vec2 f = fract(cell);
+        float rnd = hash21(id + float(layer) * 71.0);
+        vec2 offset = vec2(
+            hash21(id + 13.1),
+            hash21(id + 29.7)
+        );
+
+        float dist = length(f - offset);
+        float threshold =
+            layer == 0 ? 0.982 :
+            (layer == 1 ? 0.992 : 0.996);
+
+        float star =
+            (1.0 - smoothstep(0.0, 0.045, dist)) *
+            step(threshold, rnd);
+
+        float twinkle =
+            0.75 + 0.25 * sin(uTime * (1.0 + rnd * 3.0) + rnd * 80.0);
+
+        vec3 tint = mix(
+            vec3(0.48, 0.65, 1.0),
+            vec3(1.0, 0.76, 0.49),
+            hash21(id + 51.0)
+        );
+
+        col += tint * star * twinkle *
+            (layer == 0 ? 0.7 : 1.0);
+    }
+
+    float nebula = pow(max(0.0,
+        sin(d.x * 7.0 + d.z * 3.0) *
+        sin(d.y * 9.0 + d.x * 2.0)), 5.0);
+
+    col += nebula * vec3(0.025, 0.018, 0.07);
+
+    return col;
+}
+
+vec3 background(vec3 direction) {
+    return mix(
+        vec3(0.0015, 0.002, 0.008),
+        starField(direction),
+        uStars
+    );
+}
+
+vec3 diskColor(float r, float angle) {
+    float temperature = clamp(1.0 - (r - 1.5) / 7.0, 0.0, 1.0);
+
+    vec3 outerColor = vec3(0.72, 0.12, 0.025);
+    vec3 middleColor = vec3(1.0, 0.40, 0.08);
+    vec3 innerColor = vec3(1.0, 0.83, 0.55);
+
+    vec3 color = mix(
+        outerColor,
+        middleColor,
+        smoothstep(0.0, 0.55, temperature)
+    );
+
+    color = mix(
+        color,
+        innerColor,
+        smoothstep(0.45, 1.0, temperature)
+    );
+
+    float doppler = 0.45 + 0.9 * (0.5 + 0.5 * cos(angle));
+
+    return color * doppler;
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution) / uResolution.y;
+
+    vec3 forward = normalize(-uCamera);
+    vec3 worldUp = vec3(0.0, 1.0, 0.0);
+    vec3 right = normalize(cross(forward, worldUp));
+    vec3 up = normalize(cross(right, forward));
+
+    const float FOV = 1.08;
+
+    vec3 dir = normalize(
+        forward + FOV * uv.x * right + FOV * uv.y * up
+    );
+
+    vec3 pos = uCamera;
+    float rs = uMass;
+
+    vec3 emission = vec3(0.0);
+    vec3 particleEmission = vec3(0.0);
+    float transmittance = 1.0;
+    float traveled = 0.0;
+
+    bool captured = false;
+    bool navStarHit = false;
+
+    vec3 hitStarColor = vec3(0.0);
+    vec3 hitStarNormal = vec3(0.0);
+
+    float seedA[PARTICLE_COUNT];
+    float seedB[PARTICLE_COUNT];
+    float seedC[PARTICLE_COUNT];
+    float seedD[PARTICLE_COUNT];
+
+    if (uParticles > 0.5) {
+        for (int j = 0; j < PARTICLE_COUNT; j++) {
+            float id = float(j);
+
+            seedA[j] = hash11(id * 17.13 + 2.7);
+            seedB[j] = hash11(id * 31.71 + 9.2);
+            seedC[j] = hash11(id * 47.91 + 4.1);
+            seedD[j] = hash11(id * 61.37 + 8.6);
+        }
+    }
+
+    for (int i = 0; i < MAX_TRACE_STEPS; i++) {
+        if (float(i) >= uSteps) break;
+
+        float r = length(pos);
+
+        if (r <= rs * 1.015) {
+            captured = true;
+            break;
+        }
+
+        float stepSize = clamp(
+            0.075 + r * 0.012,
+            0.075,
+            1.25
+        );
+
+        vec3 radial = pos / max(r, 0.0001);
+        vec3 perpendicular = radial - dot(radial, dir) * dir;
+        float safeR = max(r, rs * 1.02);
+        float acceleration = 1.5 * rs / (safeR * safeR);
+
+        dir = normalize(
+            dir - acceleration * perpendicular * stepSize
+        );
+
+        vec3 nextPos = pos + dir * stepSize;
+        vec3 segment = nextPos - pos;
+        float segmentLengthSquared = max(
+            dot(segment, segment),
+            0.000001
+        );
+
+        if (uParticles > 0.5 && mod(float(i), 4.0) < 0.5) {
+            for (int j = 0; j < PARTICLE_COUNT; j++) {
+                float a = seedA[j];
+                float b = seedB[j];
+                float c = seedC[j];
+                float d = seedD[j];
+
+                float orbitRadius = rs * mix(2.15, 9.1, a);
+                float directionSign = d < 0.14 ? -1.0 : 1.0;
+                float orbitalSpeed = mix(0.12, 0.34, b);
+
+                float angle =
+                    c * 2.0 * PI +
+                    uTime * uSpin * orbitalSpeed * directionSign;
+
+                float inclination = (d - 0.5) * 0.16;
+
+                vec3 particlePos = vec3(
+                    cos(angle) * orbitRadius,
+                    sin(angle * 0.7 + a * 8.0) * rs * inclination,
+                    sin(angle) * orbitRadius
+                );
+
+                vec3 toParticle = particlePos - pos;
+                float broadRadius = stepSize + rs * 0.30;
+
+                if (dot(toParticle, toParticle) > broadRadius * broadRadius) {
+                    continue;
+                }
+
+                float segmentT = clamp(
+                    dot(toParticle, segment) / segmentLengthSquared,
+                    0.0,
+                    1.0
+                );
+
+                vec3 offset = particlePos - (pos + segment * segmentT);
+                float distanceSquared = dot(offset, offset);
+                float particleRadius = rs * mix(0.035, 0.065, b);
+
+                if (distanceSquared < particleRadius * particleRadius * 7.84) {
+                    float distanceToRay = sqrt(max(distanceSquared, 0.0));
+
+                    float core = 1.0 - smoothstep(
+                        particleRadius * 0.28,
+                        particleRadius,
+                        distanceToRay
+                    );
+
+                    float halo = exp(
+                        -pow(distanceToRay / (particleRadius * 1.8), 2.0)
+                    );
+
+                    vec3 particleColor = mix(
+                        vec3(0.48, 0.77, 1.0),
+                        vec3(1.0, 0.66, 0.35),
+                        smoothstep(0.52, 0.88, a)
+                    );
+
+                    particleColor = mix(
+                        particleColor,
+                        vec3(0.86, 0.94, 1.0),
+                        smoothstep(0.70, 0.95, d) * 0.75
+                    );
+
+                    float sparkle =
+                        0.84 + 0.16 * sin(
+                            uTime * (1.4 + b * 2.0) + c * 40.0
+                        );
+
+                    particleEmission += transmittance * particleColor *
+                        mix(0.7, 1.4, c) * sparkle *
+                        (core * 2.1 + halo * 0.16);
+                }
+            }
+        }
+
+        /*
+          Se guarda el color en el mismo bucle que encuentra la esfera.
+          Esto evita indexar el arreglo GLSL usando un índice calculado
+          después del bucle, algo que ciertos compiladores WebGL 1 rechazan.
+        */
+        if (uStars > 0.5 && !navStarHit) {
+            float nearestT = 2.0;
+            bool nearestFound = false;
+
+            vec3 nearestNormal = vec3(0.0);
+            vec3 nearestColor = vec3(0.0);
+
+            for (int j = 0; j < MAX_NAV; j++) {
+                if (float(j) >= uNavCount) break;
+
+                vec3 center = uNavPositions[j];
+                float sphereRadius = uNavRadii[j];
+
+                vec3 toCenter = center - pos;
+                float broadRadius = sphereRadius + stepSize;
+
+                if (dot(toCenter, toCenter) > broadRadius * broadRadius) {
+                    continue;
+                }
+
+                float t = clamp(
+                    dot(toCenter, segment) / segmentLengthSquared,
+                    0.0,
+                    1.0
+                );
+
+                vec3 offset = pos + segment * t - center;
+                float distanceSquared = dot(offset, offset);
+
+                if (
+                    distanceSquared < sphereRadius * sphereRadius &&
+                    t < nearestT
+                ) {
+                    nearestT = t;
+                    nearestFound = true;
+
+                    nearestNormal = offset /
+                        sqrt(max(distanceSquared, 0.000001));
+
+                    nearestColor = uNavColors[j];
+                }
+            }
+
+            if (nearestFound) {
+                hitStarColor = nearestColor;
+                hitStarNormal = nearestNormal;
+                navStarHit = true;
+            }
+        }
+
+        pos = nextPos;
+        traveled += stepSize;
+
+        float radius = length(pos);
+        float diskRadius = length(pos.xz);
+
+        if (diskRadius > rs * 1.45 && diskRadius < rs * 7.8) {
+            float normalizedRadius = diskRadius / rs;
+
+            float thickness = rs *
+                (0.018 + 0.008 * normalizedRadius);
+
+            float verticalRatio = abs(pos.y) /
+                max(thickness, 0.0001);
+
+            float density = exp(-pow(verticalRatio, 1.35));
+
+            float innerFade = smoothstep(
+                rs * 1.45,
+                rs * 1.8,
+                diskRadius
+            );
+
+            float outerFade = 1.0 - smoothstep(
+                rs * 6.7,
+                rs * 7.8,
+                diskRadius
+            );
+
+            float angle = atan(pos.z, pos.x);
+            float phase = angle - uTime * uSpin * 0.70;
+
+            float structure = 0.84 + 0.16 *
+                sin(phase * 13.0 + normalizedRadius * 2.4);
+
+            density *= innerFade * outerFade * structure;
+
+            vec3 color = diskColor(normalizedRadius, angle);
+            float amount = density * stepSize * uDisk * 0.62;
+
+            emission += transmittance * color * amount;
+            transmittance *= exp(-density * stepSize * 0.12);
+        }
+
+        if (navStarHit) break;
+
+        if (radius > 120.0 * rs && traveled > 5.0) {
+            break;
+        }
+    }
+
+    vec3 color;
+
+    if (navStarHit) {
+        vec3 normal = normalize(hitStarNormal);
+        vec3 lightDirection = normalize(vec3(-0.45, 0.7, 1.0));
+
+        float diffuse = 0.24 +
+            0.76 * max(dot(normal, lightDirection), 0.0);
+
+        float viewFacing = max(dot(normal, -dir), 0.0);
+        float rim = pow(1.0 - viewFacing, 2.6);
+
+        float surfaceNoise = 0.94 +
+            0.06 * sin(normal.x * 14.0 + normal.y * 9.0);
+
+        vec3 surface = hitStarColor *
+            (diffuse * surfaceNoise + rim * 0.72);
+
+        vec3 halo = hitStarColor * (0.07 + 0.10 * rim);
+
+        color = (surface + halo) * transmittance +
+            emission + particleEmission;
+    } else {
+        vec3 sky = captured ? vec3(0.0) : background(dir);
+
+        color = sky * transmittance + emission + particleEmission;
+
+        float finalRadius = length(pos);
+
+        float ring = exp(
+            -pow(
+                (finalRadius - 1.52 * rs) / (0.07 * rs + 0.001),
+                2.0
+            )
+        );
+
+        if (!captured) {
+            color += vec3(1.0, 0.39, 0.10) *
+                ring * 0.012 * uDisk;
+        }
+
+        if (uGrid > 0.5) {
+            float rr = length(pos.xz);
+
+            float line = 1.0 - smoothstep(
+                0.015 * rs,
+                0.04 * rs,
+                abs(fract(rr / (1.5 * rs)) - 0.5) * 1.5 * rs
+            );
+
+            color += vec3(0.04, 0.18, 0.28) * line * 0.12;
+        }
+    }
+
+    color = max(color, vec3(0.0));
+    color = color / (1.0 + color);
+    color = pow(color, vec3(0.85));
+
+    float vignette = 1.0 -
+        0.24 * smoothstep(0.25, 1.15, length(uv));
+
+    color *= vignette;
+
+    gl_FragColor = vec4(color, 1.0);
+}
+`;
+
+function compileShader(type, source) {
+    const shader = gl.createShader(type);
+
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const log = gl.getShaderInfoLog(shader);
+        gl.deleteShader(shader);
+        throw new Error("Error al compilar GLSL:\n" + log);
+    }
+
+    return shader;
+}
+
+let program;
+
+try {
+    const vs = compileShader(gl.VERTEX_SHADER, vertexShader);
+    const fs = compileShader(gl.FRAGMENT_SHADER, fragmentShader);
+
+    program = gl.createProgram();
+
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    gl.deleteShader(vs);
+    gl.deleteShader(fs);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error(
+            "Error al enlazar GLSL:\n" + gl.getProgramInfoLog(program)
+        );
+    }
+} catch (error) {
+    errorBox.style.display = "block";
+    errorBox.textContent = String(error);
+    return;
+}
+
+gl.useProgram(program);
+
+const vertices = new Float32Array([
+    -1, -1, 1, -1, -1, 1,
+    -1, 1, 1, -1, 1, 1
+]);
+
+const buffer = gl.createBuffer();
+
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+const positionLoc = gl.getAttribLocation(program, "position");
+
+gl.enableVertexAttribArray(positionLoc);
+gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+const uniform = name => gl.getUniformLocation(program, name);
+
+const U = {
+    resolution: uniform("uResolution"),
+    time: uniform("uTime"),
+    camera: uniform("uCamera"),
+    mass: uniform("uMass"),
+    disk: uniform("uDisk"),
+    spin: uniform("uSpin"),
+    steps: uniform("uSteps"),
+    stars: uniform("uStars"),
+    particles: uniform("uParticles"),
+    grid: uniform("uGrid"),
+    count: uniform("uNavCount"),
+    positions: uniform("uNavPositions[0]"),
+    colors: uniform("uNavColors[0]"),
+    radii: uniform("uNavRadii[0]")
+};
+
+const planetPositions = new Float32Array(MAX_NAV_STARS * 3);
+const planetColors = new Float32Array(MAX_NAV_STARS * 3);
+const planetRadii = new Float32Array(MAX_NAV_STARS);
+
+function syncPlanetUniformData() {
+    planetPositions.fill(0);
+    planetColors.fill(0);
+    planetRadii.fill(0);
+
+    NAV_STARS.forEach((star, index) => {
+        const offset = index * 3;
+
+        planetPositions.set(star.position, offset);
+        planetColors.set(star.color, offset);
+        planetRadii[index] = star.radius;
+    });
+}
+
+/* PLANETAS INTERACTIVOS */
+
+function attachHotspotEvents(element) {
+    if (element.dataset.eventsAttached === "true") return;
+
+    element.dataset.eventsAttached = "true";
+
+    element.addEventListener("pointerdown", event => {
+        if (event.pointerType !== "touch") return;
+
+        if (!element.classList.contains("tooltip-open")) {
+            event.preventDefault();
+
+            hotspots.forEach(other => {
+                if (other !== element) {
+                    other.classList.remove("tooltip-open");
+                }
+            });
+
+            element.classList.add("tooltip-open");
+        }
+    });
+
+    element.addEventListener("pointerenter", () => {
+        element.classList.remove("tooltip-open");
+    });
+}
+
+function hideHotspot(element) {
+    element.style.opacity = "0";
+    element.style.pointerEvents = "none";
+    element.style.left = "-1000px";
+    element.style.top = "-1000px";
+    element.classList.remove("visible", "tooltip-open");
+}
+
+function rebuildPlanets() {
+    const allElements = [
+        ...hotspotContainer.querySelectorAll(":scope > a.star-hotspot")
+    ];
+
+    if (allElements.length > MAX_NAV_STARS) {
+        errorBox.style.display = "block";
+        errorBox.textContent =
+            "Encontré " + allElements.length +
+            " planetas, pero el shader admite un máximo de " +
+            MAX_NAV_STARS + ".";
+    } else {
+        errorBox.style.display = "none";
+    }
+
+    hotspots = allElements.slice(0, MAX_NAV_STARS);
+
+    NAV_STARS = hotspots.map((element, index) =>
+        createPlanet(element, index, hotspots.length)
+    );
+
+    hotspots.forEach(attachHotspotEvents);
+    allElements.slice(MAX_NAV_STARS).forEach(hideHotspot);
+
+    syncPlanetUniformData();
+
+    hotspotsDirty = true;
+    invalidate(true);
+}
+
+/*
+  Solo observa los hijos directos del nav.
+  Los cambios de texto de los tooltips no provocarán reconstrucciones
+  repetidas de todos los planetas.
+*/
+const hotspotObserver = new MutationObserver(() => rebuildPlanets());
+
+hotspotObserver.observe(hotspotContainer, {
+    childList: true,
+    subtree: false
+});
+
+rebuildPlanets();
+
+document.addEventListener("pointerdown", event => {
+    if (event.pointerType !== "touch") return;
+
+    if (!event.target.closest(".star-hotspot")) {
+        hotspots.forEach(element => {
+            element.classList.remove("tooltip-open");
+        });
+    }
+});
+
+/* RESOLUCIÓN ADAPTABLE */
+
+function applyResolution() {
+    const scale = clamp(
+        resolutionScale,
+        MIN_RENDER_SCALE,
+        deviceScale
+    );
+
+    const width = Math.max(
+        1,
+        Math.floor(window.innerWidth * scale)
+    );
+
+    const height = Math.max(
+        1,
+        Math.floor(window.innerHeight * scale)
+    );
+
+    if (canvas.width === width && canvas.height === height) {
+        return false;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
+    gl.viewport(0, 0, width, height);
+
+    dirty = true;
+    hotspotsDirty = true;
+
+    return true;
+}
+
+function resize() {
+    applyResolution();
+    invalidate(true);
+}
+
+window.addEventListener("resize", resize, { passive: true });
+
+function adaptResolution(fps) {
+    if (fps < 38) {
+        lowFPSWindows++;
+        highFPSWindows = 0;
+    } else if (fps > 55) {
+        highFPSWindows++;
+        lowFPSWindows = 0;
+    } else {
+        lowFPSWindows = 0;
+        highFPSWindows = 0;
+    }
+
+    let nextScale = resolutionScale;
+
+    if (lowFPSWindows >= 2) {
+        nextScale = Math.max(
+            MIN_RENDER_SCALE,
+            resolutionScale - 0.10
+        );
+
+        lowFPSWindows = 0;
+    } else if (highFPSWindows >= 3) {
+        nextScale = Math.min(
+            deviceScale,
+            resolutionScale + 0.05
+        );
+
+        highFPSWindows = 0;
+    }
+
+    if (Math.abs(nextScale - resolutionScale) > 0.001) {
+        resolutionScale = nextScale;
+        applyResolution();
+    }
+}
+
+/* CÁMARA: RATÓN Y PANTALLA TÁCTIL */
+
+canvas.addEventListener("contextmenu", event => {
+    event.preventDefault();
+});
+
+function getPinchDistance() {
+    const points = [...activePointers.values()];
+
+    if (points.length < 2) return 0;
+
+    return Math.hypot(
+        points[0].x - points[1].x,
+        points[0].y - points[1].y
+    );
+}
+
+canvas.addEventListener("pointerdown", event => {
+    if (event.pointerType === "mouse" &&
+        event.button !== 0 &&
+        event.button !== 2) {
+        return;
+    }
+
+    activePointers.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY
+    });
+
+    try {
+        canvas.setPointerCapture(event.pointerId);
+    } catch (_) {}
+
+    if (activePointers.size >= 2) {
+        dragging = false;
+        lastPinchDistance = getPinchDistance();
+        return;
+    }
+
+    dragging = true;
+    lastX = event.clientX;
+    lastY = event.clientY;
+});
+
+canvas.addEventListener("pointermove", event => {
+    if (activePointers.has(event.pointerId)) {
+        activePointers.set(event.pointerId, {
+            x: event.clientX,
+            y: event.clientY
+        });
+    }
+
+    /*
+      Dos dedos: acercar o alejar la cámara.
+      Un dedo o ratón: orbitar la escena.
+    */
+    if (activePointers.size >= 2) {
+        const newPinchDistance = getPinchDistance();
+
+        if (lastPinchDistance > 0 && newPinchDistance > 0) {
+            const delta = lastPinchDistance - newPinchDistance;
+            updateZoom(delta / 90);
+        }
+
+        lastPinchDistance = newPinchDistance;
+        dragging = false;
+        return;
+    }
+
+    if (!dragging) return;
+
+    const dx = event.clientX - lastX;
+    const dy = event.clientY - lastY;
+
+    yaw -= dx * 0.006;
+    pitch = clamp(pitch + dy * 0.005, -1.48, 1.48);
+
+    lastX = event.clientX;
+    lastY = event.clientY;
+
+    invalidate(true);
+});
+
+function stopDragging(event) {
+    activePointers.delete(event.pointerId);
+
+    if (activePointers.size < 2) {
+        lastPinchDistance = 0;
+    }
+
+    if (activePointers.size === 1) {
+        const remaining = [...activePointers.values()][0];
+        lastX = remaining.x;
+        lastY = remaining.y;
+        dragging = true;
+    } else {
+        dragging = false;
+    }
+}
+
+canvas.addEventListener("pointerup", stopDragging);
+canvas.addEventListener("pointercancel", stopDragging);
+
+window.addEventListener("blur", () => {
+    dragging = false;
+    activePointers.clear();
+    lastPinchDistance = 0;
+});
+
+canvas.addEventListener("wheel", event => {
+    event.preventDefault();
+
+    let deltaPixels = event.deltaY;
+
+    if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+        deltaPixels *= 16;
+    } else if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+        deltaPixels *= window.innerHeight;
+    }
+
+    updateZoom(deltaPixels / WHEEL_STEP_PIXELS);
+}, { passive: false });
+
+canvas.addEventListener("dblclick", resetCamera);
+
+/* PROYECCIÓN Y OCLUSIÓN */
+
+function getBlackHoleProjection() {
+    const centerX = window.innerWidth * 0.5;
+    const centerY = window.innerHeight * 0.5;
+
+    const denominator = Math.sqrt(
+        Math.max(distance * distance - FIXED_MASS * FIXED_MASS, 0.001)
+    );
+
+    const radius =
+        (FIXED_MASS / denominator / 1.08) * window.innerHeight;
+
+    return {
+        x: centerX,
+        y: centerY,
+        radius
+    };
+}
+
+function isBehindBlackHole(camera, target, radius) {
+    const ray = subtract3(target, camera);
+    const rayLength = Math.hypot(ray[0], ray[1], ray[2]);
+    const direction = normalize3(ray);
+
+    const t = clamp(
+        dot3([-camera[0], -camera[1], -camera[2]], direction),
+        0,
+        rayLength
+    );
+
+    const closest = [
+        camera[0] + direction[0] * t,
+        camera[1] + direction[1] * t,
+        camera[2] + direction[2] * t
+    ];
+
+    return Math.hypot(
+        closest[0],
+        closest[1],
+        closest[2]
+    ) < radius && t < rayLength;
+}
+
+function updateHotspots() {
+    const cam = cameraPosition();
+
+    const forward = normalize3([
+        -cam[0],
+        -cam[1],
+        -cam[2]
+    ]);
+
+    const right = normalize3(cross3(forward, [0, 1, 0]));
+    const up = normalize3(cross3(right, forward));
+
+    const centerX = window.innerWidth * 0.5;
+    const centerY = window.innerHeight * 0.5;
+    const viewportHeight = window.innerHeight;
+    const blackHole = getBlackHoleProjection();
+
+    NAV_STARS.forEach(star => {
+        const element = star.element;
+
+        if (!controls.stars.checked) {
+            hideHotspot(element);
+            return;
+        }
+
+        const relative = subtract3(star.position, cam);
+        const depth = dot3(relative, forward);
+
+        if (depth <= 0.1) {
+            hideHotspot(element);
+            return;
+        }
+
+        const horizontal = dot3(relative, right);
+        const vertical = dot3(relative, up);
+
+        const x = centerX +
+            horizontal / (depth * 1.08) * viewportHeight;
+
+        const y = centerY -
+            vertical / (depth * 1.08) * viewportHeight;
+
+        const apparentDistance = Math.sqrt(
+            Math.max(depth * depth - star.radius * star.radius, 0.001)
+        );
+
+        const projectedRadius =
+            star.radius / (apparentDistance * 1.08) * viewportHeight;
+
+        const diameter = clamp(projectedRadius * 2, 12, 180);
+
+        const onScreen =
+            x > -diameter &&
+            x < window.innerWidth + diameter &&
+            y > -diameter &&
+            y < window.innerHeight + diameter;
+
+        if (!onScreen) {
+            hideHotspot(element);
+            return;
+        }
+
+        /*
+          x e y representan el centro proyectado de la esfera.
+          Como el hotspot ya no usa transform: translate(-50%, -50%),
+          restamos la mitad de su tamaño para conservar ese centro.
+          Esto permite que los tooltips fixed móviles usen el viewport.
+        */
+        element.style.left = (x - diameter / 2) + "px";
+        element.style.top = (y - diameter / 2) + "px";
+        element.style.width = diameter + "px";
+        element.style.height = diameter + "px";
+        element.style.opacity = "1";
+        element.style.pointerEvents = "auto";
+        element.style.zIndex = String(Math.round(1000 - depth));
+
+        if (isBehindBlackHole(
+            cam,
+            star.position,
+            FIXED_MASS * 1.015
+        )) {
+            element.style.setProperty(
+                "--occ-x",
+                (blackHole.x - x) + "px"
+            );
+
+            element.style.setProperty(
+                "--occ-y",
+                (blackHole.y - y) + "px"
+            );
+
+            element.style.setProperty(
+                "--occ-r",
+                blackHole.radius + "px"
+            );
+        } else {
+            element.style.setProperty("--occ-x", "-1000px");
+            element.style.setProperty("--occ-y", "-1000px");
+            element.style.setProperty("--occ-r", "0px");
+        }
+
+        element.classList.add("visible");
+
+        element.classList.toggle(
+            "tooltip-left",
+            x > window.innerWidth * 0.67
+        );
+    });
+
+    hotspotsDirty = false;
+}
+
+/* RENDERIZADO */
+
+function drawScene() {
+    const cam = cameraPosition();
+
+    gl.useProgram(program);
+
+    gl.uniform2f(U.resolution, canvas.width, canvas.height);
+    gl.uniform1f(U.time, elapsed);
+    gl.uniform3f(U.camera, cam[0], cam[1], cam[2]);
+
+    gl.uniform1f(U.mass, FIXED_MASS);
+    gl.uniform1f(U.disk, FIXED_DISK_EMISSION);
+    gl.uniform1f(U.steps, TRACE_STEPS);
+    gl.uniform1f(U.spin, FIXED_SPIN);
+
+    gl.uniform1f(U.stars, controls.stars.checked ? 1 : 0);
+    gl.uniform1f(U.particles, controls.particles.checked ? 1 : 0);
+    gl.uniform1f(U.grid, controls.grid.checked ? 1 : 0);
+    gl.uniform1f(U.count, NAV_STARS.length);
+
+    gl.uniform3fv(U.positions, planetPositions);
+    gl.uniform3fv(U.colors, planetColors);
+    gl.uniform1fv(U.radii, planetRadii);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    if (hotspotsDirty) {
+        updateHotspots();
+    }
+}
+
+function render(now) {
+    rafId = 0;
+
+    if (document.hidden || contextLost) return;
+
+    const dt = lastFrameTime
+        ? Math.min(0.05, Math.max(0, (now - lastFrameTime) / 1000))
+        : 0;
+
+    lastFrameTime = now;
+
+    if (!paused || dirty) {
+        if (!paused) elapsed += dt;
+
+        drawScene();
+        dirty = false;
+
+        if (!paused) {
+            fpsFrames++;
+            fpsTime += dt;
+            adaptiveTime += dt;
+        }
+
+        if (!paused && fpsTime >= 0.75) {
+            displayedFPS = Math.round(fpsFrames / fpsTime);
+
+            fpsFrames = 0;
+            fpsTime = 0;
+
+            status.textContent =
+                "WEBGL · " + displayedFPS + " FPS · " +
+                canvas.width + " × " + canvas.height +
+                " · PLANETAS " + NAV_STARS.length +
+                "/" + MAX_NAV_STARS +
+                " · SCALE " + Math.round(resolutionScale * 100) + "%";
+
+            if (adaptiveTime >= 1.5) {
+                adaptiveTime = 0;
+                adaptResolution(displayedFPS);
+            }
+        } else if (paused) {
+            status.textContent =
+                "WEBGL · PAUSADO · PLANETAS " +
+                NAV_STARS.length + " · " +
+                canvas.width + " × " + canvas.height;
+        }
+    }
+
+    if (!paused && !document.hidden && !contextLost) {
+        rafId = requestAnimationFrame(render);
+    }
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        if (rafId) cancelAnimationFrame(rafId);
+
+        rafId = 0;
+        lastFrameTime = 0;
+        return;
+    }
+
+    lastFrameTime = 0;
+    fpsTime = 0;
+    fpsFrames = 0;
+
+    invalidate(true);
+});
+
+canvas.addEventListener("webglcontextlost", event => {
+    event.preventDefault();
+
+    contextLost = true;
+
+    if (rafId) cancelAnimationFrame(rafId);
+
+    rafId = 0;
+    status.textContent = "WEBGL · CONTEXTO PERDIDO";
+
+    errorBox.style.display = "block";
+    errorBox.textContent =
+        "El navegador perdió el contexto gráfico. Recarga la página para reiniciar la simulación.";
+});
+
+/* ERRORES DE EJECUCIÓN */
+
+window.addEventListener("error", event => {
+    errorBox.style.display = "block";
+
+    errorBox.textContent =
+        "Error de JavaScript:\n" +
+        (event.message || "Error desconocido") +
+        (event.filename
+            ? "\n" + event.filename + ":" + event.lineno
+            : "");
+});
+
+window.addEventListener("unhandledrejection", event => {
+    errorBox.style.display = "block";
+    errorBox.textContent = "Error asíncrono:\n" + String(event.reason);
+});
+
+/* INICIO */
+
+function initialize() {
+    gl.clearColor(0.005, 0.006, 0.015, 1);
+
+    applyResolution();
+    rebuildPlanets();
+    invalidate(true);
+}
+
+initialize();
+
+})();
+</script>
+</body>
+</html>
