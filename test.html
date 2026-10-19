@@ -2069,12 +2069,40 @@ function hideMobileCard() {
     activeMobileHotspot = null;
 }
 
-/* En móvil horizontal, la tarjeta central también funciona como enlace. */
-mobileCard.addEventListener("click", event => {
-    if (!window.matchMedia(
-        "(pointer: coarse) and (max-height: 500px) and (orientation: landscape)"
-    ).matches || !activeMobileHotspot) return;
+/*
+  En móvil horizontal, la tarjeta central funciona como enlace,
+  pero solo si el gesto comenzó con un toque explícito sobre la tarjeta.
+  Así, el mismo toque que abre la tarjeta desde el planeta no puede
+  convertirse accidentalmente en un clic sobre la tarjeta recién mostrada.
+*/
+let mobileCardTapArmed = false;
 
+mobileCard.addEventListener("pointerdown", event => {
+    const landscapeMobile = window.matchMedia(
+        "(pointer: coarse) and (max-height: 500px) and (orientation: landscape)"
+    ).matches;
+
+    mobileCardTapArmed = landscapeMobile &&
+        event.pointerType === "touch" &&
+        !mobileCard.hidden &&
+        Boolean(activeMobileHotspot);
+});
+
+mobileCard.addEventListener("pointercancel", () => {
+    mobileCardTapArmed = false;
+});
+
+mobileCard.addEventListener("click", event => {
+    const landscapeMobile = window.matchMedia(
+        "(pointer: coarse) and (max-height: 500px) and (orientation: landscape)"
+    ).matches;
+
+    if (!landscapeMobile || !activeMobileHotspot || !mobileCardTapArmed) {
+        mobileCardTapArmed = false;
+        return;
+    }
+
+    mobileCardTapArmed = false;
     window.location.href = activeMobileHotspot.href;
 });
 
