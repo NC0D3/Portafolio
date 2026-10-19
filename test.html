@@ -943,9 +943,14 @@ h1 {
     text-transform: uppercase;
 }
 
-@media (max-width: 700px) {
-    /* En móvil solo se muestra el portal; no el tooltip anidado. */
-    #star-hotspots .star-tooltip { display: none !important; }
+@media (pointer: coarse) {
+    /* En dispositivos táctiles solo se muestra la tarjeta central independiente. */
+    #star-hotspots .star-hotspot .star-tooltip,
+    #star-hotspots .star-hotspot:hover .star-tooltip,
+    #star-hotspots .star-hotspot:focus-visible .star-tooltip,
+    #star-hotspots .star-hotspot.tooltip-open .star-tooltip {
+        display: none !important;
+    }
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
@@ -956,8 +961,10 @@ h1 {
         right: auto;
         width: min(440px, calc(100vw - 24px - var(--safe-left) - var(--safe-right)));
         max-width: none;
-        max-height: none;
+        max-height: calc(100dvh - 16px - var(--safe-top) - var(--safe-bottom));
+        min-height: 0;
         margin: 0;
+        overflow-y: auto;
         transform: translate(-50%, 12px);
     }
     #mobile-card.is-open { transform: translate(-50%, 0); }
@@ -966,6 +973,85 @@ h1 {
     #mobile-card .tooltip-description { padding: 0 12px; font-size: 11px; line-height: 1.4; }
     #mobile-card .tooltip-destination { margin-top: 7px; padding: 7px 12px; }
     #mobile-card .mobile-card-hint { padding: 6px 12px 8px; }
+}
+
+/* =========================================================
+   ESCRITORIO COMPACTO / POCA ALTURA
+   Conserva una tarjeta flotante pequeña junto al planeta.
+   No abre ni reserva espacio para la tarjeta central.
+   ========================================================= */
+@media (pointer: fine) and (max-height: 520px),
+       (pointer: fine) and (max-width: 700px) {
+    .star-tooltip,
+    .star-hotspot.tooltip-left .star-tooltip {
+        position: absolute;
+        left: calc(100% + 10px);
+        right: auto;
+        top: 50%;
+        bottom: auto;
+        width: 218px;
+        max-width: min(218px, calc(100vw - 24px));
+        max-height: calc(100dvh - 20px - var(--safe-top) - var(--safe-bottom));
+        overflow: hidden;
+        border-radius: 4px;
+    }
+
+    .star-hotspot.tooltip-left .star-tooltip {
+        left: auto;
+        right: calc(100% + 10px);
+    }
+
+    .star-hotspot:hover .star-tooltip,
+    .star-hotspot:focus-visible .star-tooltip,
+    .star-hotspot.tooltip-open .star-tooltip {
+        transform: translate(0, -50%);
+    }
+
+    .star-hotspot.tooltip-left .star-tooltip {
+        transform: translate(-6px, -50%);
+    }
+
+    .star-hotspot.tooltip-left:hover .star-tooltip,
+    .star-hotspot.tooltip-left:focus-visible .star-tooltip,
+    .star-hotspot.tooltip-left.tooltip-open .star-tooltip {
+        transform: translate(0, -50%);
+    }
+
+    .tooltip-index {
+        padding: 9px 11px 6px;
+        font-size: 8px;
+        letter-spacing: .12em;
+    }
+
+    .tooltip-index::after {
+        margin-top: 3px;
+        font-size: 7px;
+    }
+
+    .tooltip-title {
+        padding: 9px 11px 0;
+        font-size: 15px;
+        line-height: 1.15;
+    }
+
+    /* La descripción es lo primero que se omite para mantener la tarjeta limpia. */
+    .tooltip-description {
+        display: none;
+    }
+
+    .tooltip-destination {
+        gap: 7px;
+        margin-top: 9px;
+        padding: 7px 11px;
+        font-size: 8px;
+    }
+
+    .tooltip-arrow {
+        flex-basis: 21px;
+        width: 21px;
+        height: 21px;
+        font-size: 13px;
+    }
 }
 
 /* Accesibilidad y movimiento reducido. */
@@ -1936,11 +2022,15 @@ function syncPlanetUniformData() {
 
 /* PLANETAS INTERACTIVOS */
 
+function isCompactCardViewport() {
+    // El panel independiente es exclusivo de pantallas táctiles/móviles.
+    // Una ventana de escritorio baja debe conservar el tooltip flotante.
+    return window.matchMedia("(max-width: 700px)").matches ||
+        window.matchMedia("(pointer: coarse)").matches;
+}
+
 function isMobileTouch(event) {
-    return event.pointerType === "touch" && (
-        window.matchMedia("(max-width: 700px)").matches ||
-        window.matchMedia("(pointer: coarse)").matches
-    );
+    return event.pointerType === "touch" && isCompactCardViewport();
 }
 
 function showMobileCard(element) {
@@ -1978,12 +2068,13 @@ function attachHotspotEvents(element) {
     element.dataset.eventsAttached = "true";
 
     element.addEventListener("pointerdown", event => {
-        if (!isMobileTouch(event)) return;
+        const compactTouch = isMobileTouch(event);
+        if (!compactTouch) return;
 
-        /* Primer toque: mostrar información. Segundo toque: navegar. */
+        /* En móvil/táctil, el primer toque abre la tarjeta central y el segundo navega. */
         if (activeMobileHotspot === element && !mobileCard.hidden) {
             hideMobileCard();
-            return; // No cancelar: el enlace puede navegar.
+            return; // Segundo contacto: permitir navegación.
         }
 
         event.preventDefault();
@@ -2001,6 +2092,10 @@ function attachHotspotEvents(element) {
 
     element.addEventListener("pointerenter", event => {
         if (event.pointerType === "touch") return;
+        // En escritorio, incluso con poca altura, la tarjeta sigue el hover.
+        if (activeMobileHotspot && !window.matchMedia("(pointer: coarse)").matches) {
+            hideMobileCard();
+        }
         element.classList.remove("tooltip-open");
     });
 }
@@ -2105,7 +2200,10 @@ function resize() {
     invalidate(true);
 }
 
-window.addEventListener("resize", resize, { passive: true });
+window.addEventListener("resize", () => {
+    resize();
+    if (!isCompactCardViewport()) hideMobileCard();
+}, { passive: true });
 
 function adaptResolution(fps) {
     if (fps < 38) {
