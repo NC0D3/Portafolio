@@ -2046,6 +2046,13 @@ function showMobileCard(element) {
     mobileCard.style.setProperty("--star-color", color || "#9be7ff");
     mobileCardContent.innerHTML = source.outerHTML;
 
+    const landscapeMobile = window.matchMedia(
+        "(pointer: coarse) and (max-height: 500px) and (orientation: landscape)"
+    ).matches;
+    mobileCard.querySelector(".mobile-card-hint").textContent = landscapeMobile
+        ? "Toca esta tarjeta para abrir el enlace."
+        : "Toca el planeta otra vez para abrir el enlace.";
+
     mobileCard.classList.remove("is-open");
     mobileCard.hidden = false;
     requestAnimationFrame(() => mobileCard.classList.add("is-open"));
@@ -2061,6 +2068,15 @@ function hideMobileCard() {
     }
     activeMobileHotspot = null;
 }
+
+/* En móvil horizontal, la tarjeta central también funciona como enlace. */
+mobileCard.addEventListener("click", event => {
+    if (!window.matchMedia(
+        "(pointer: coarse) and (max-height: 500px) and (orientation: landscape)"
+    ).matches || !activeMobileHotspot) return;
+
+    window.location.href = activeMobileHotspot.href;
+});
 
 function attachHotspotEvents(element) {
     if (element.dataset.eventsAttached === "true") return;
