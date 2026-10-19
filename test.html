@@ -859,6 +859,115 @@ h1 {
     }
 }
 
+/* =========================================================
+   TARJETA MÓVIL INDEPENDIENTE
+   Está fuera de #star-hotspots para evitar que overflow:hidden
+   recorte la tarjeta al girar el teléfono.
+   ========================================================= */
+#mobile-card {
+    position: fixed;
+    z-index: 9999;
+    left: calc(12px + var(--safe-left));
+    right: calc(12px + var(--safe-right));
+    bottom: calc(18px + var(--safe-bottom));
+    width: auto;
+    max-width: 440px;
+    max-height: min(44dvh, 320px, calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom)));
+    margin-inline: auto;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid color-mix(in srgb, var(--star-color, var(--cyan)) 48%, rgba(145,190,230,.2));
+    border-radius: 5px;
+    background: linear-gradient(115deg, rgba(8,24,43,.99), rgba(4,12,26,.99) 58%, rgba(3,7,18,.99));
+    box-shadow: 0 18px 55px rgba(0,0,0,.66), 0 0 26px color-mix(in srgb, var(--star-color, var(--cyan)) 12%, transparent);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    isolation: isolate;
+}
+
+#mobile-card[hidden] { display: none !important; }
+#mobile-card::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--star-color, var(--cyan)), #d8f7ff, var(--star-color, var(--cyan)), transparent);
+    pointer-events: none;
+}
+#mobile-card.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+#mobile-card .mobile-card-content { display: block; min-width: 0; }
+#mobile-card .star-tooltip {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+#mobile-card .star-tooltip::before { display: none !important; }
+#mobile-card .tooltip-index { padding: 13px 15px 9px; font-size: 8px; }
+#mobile-card .tooltip-title { padding: 13px 15px 0; font-size: 19px; line-height: 1.2; }
+#mobile-card .tooltip-description { padding: 0 15px; margin-top: 7px; font-size: 12px; line-height: 1.55; }
+#mobile-card .tooltip-destination { gap: 9px; margin-top: 12px; padding: 10px 15px; font-size: 9px; }
+#mobile-card .mobile-card-hint {
+    padding: 9px 15px 12px;
+    border-top: 1px solid rgba(155,231,255,.12);
+    color: #91a5c2;
+    font: 8px/1.5 "SFMono-Regular", Consolas, monospace;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+    /* En móvil solo se muestra el portal; no el tooltip anidado. */
+    #star-hotspots .star-tooltip { display: none !important; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    #mobile-card {
+        top: calc(8px + var(--safe-top));
+        bottom: calc(8px + var(--safe-bottom));
+        left: 50%;
+        right: auto;
+        width: min(440px, calc(100vw - 24px - var(--safe-left) - var(--safe-right)));
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        transform: translate(-50%, 12px);
+    }
+    #mobile-card.is-open { transform: translate(-50%, 0); }
+    #mobile-card .tooltip-index { padding: 8px 12px 6px; }
+    #mobile-card .tooltip-title { padding: 8px 12px 0; font-size: 16px; }
+    #mobile-card .tooltip-description { padding: 0 12px; font-size: 11px; line-height: 1.4; }
+    #mobile-card .tooltip-destination { margin-top: 7px; padding: 7px 12px; }
+    #mobile-card .mobile-card-hint { padding: 6px 12px 8px; }
+}
+
 /* Accesibilidad y movimiento reducido. */
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -938,6 +1047,11 @@ h1 {
     </a>
 </nav>
 
+<aside id="mobile-card" aria-live="polite" aria-label="Información de la sección" hidden>
+    <div class="mobile-card-content"></div>
+    <div class="mobile-card-hint">Toca el planeta otra vez para abrir el enlace.</div>
+</aside>
+
 <div id="status">INICIALIZANDO GPU...</div>
 <div id="error" role="alert"></div>
 
@@ -964,6 +1078,9 @@ const canvas = $("gl");
 const status = $("status");
 const errorBox = $("error");
 const hotspotContainer = $("star-hotspots");
+const mobileCard = $("mobile-card");
+const mobileCardContent = mobileCard.querySelector(".mobile-card-content");
+let activeMobileHotspot = null;
 
 const controls = {
     stars: { checked: true },
@@ -1819,28 +1936,71 @@ function syncPlanetUniformData() {
 
 /* PLANETAS INTERACTIVOS */
 
+function isMobileTouch(event) {
+    return event.pointerType === "touch" && (
+        window.matchMedia("(max-width: 700px)").matches ||
+        window.matchMedia("(pointer: coarse)").matches
+    );
+}
+
+function showMobileCard(element) {
+    const source = element.querySelector(".star-tooltip");
+    if (!source || !mobileCard || !mobileCardContent) return;
+
+    hotspots.forEach(other => {
+        other.classList.toggle("tooltip-open", other === element);
+    });
+
+    activeMobileHotspot = element;
+    const color = element.style.getPropertyValue("--star-color");
+    mobileCard.style.setProperty("--star-color", color || "#9be7ff");
+    mobileCardContent.innerHTML = source.outerHTML;
+
+    mobileCard.classList.remove("is-open");
+    mobileCard.hidden = false;
+    requestAnimationFrame(() => mobileCard.classList.add("is-open"));
+}
+
+function hideMobileCard() {
+    mobileCard.classList.remove("is-open");
+    mobileCard.hidden = true;
+    mobileCardContent.replaceChildren();
+
+    if (activeMobileHotspot) {
+        activeMobileHotspot.classList.remove("tooltip-open");
+    }
+    activeMobileHotspot = null;
+}
+
 function attachHotspotEvents(element) {
     if (element.dataset.eventsAttached === "true") return;
 
     element.dataset.eventsAttached = "true";
 
     element.addEventListener("pointerdown", event => {
-        if (event.pointerType !== "touch") return;
+        if (!isMobileTouch(event)) return;
 
-        if (!element.classList.contains("tooltip-open")) {
+        /* Primer toque: mostrar información. Segundo toque: navegar. */
+        if (activeMobileHotspot === element && !mobileCard.hidden) {
+            hideMobileCard();
+            return; // No cancelar: el enlace puede navegar.
+        }
+
+        event.preventDefault();
+        element.dataset.suppressNextClick = "true";
+        showMobileCard(element);
+    });
+
+    element.addEventListener("click", event => {
+        if (element.dataset.suppressNextClick === "true") {
+            delete element.dataset.suppressNextClick;
             event.preventDefault();
-
-            hotspots.forEach(other => {
-                if (other !== element) {
-                    other.classList.remove("tooltip-open");
-                }
-            });
-
-            element.classList.add("tooltip-open");
+            event.stopPropagation();
         }
     });
 
-    element.addEventListener("pointerenter", () => {
+    element.addEventListener("pointerenter", event => {
+        if (event.pointerType === "touch") return;
         element.classList.remove("tooltip-open");
     });
 }
@@ -1899,12 +2059,11 @@ rebuildPlanets();
 
 document.addEventListener("pointerdown", event => {
     if (event.pointerType !== "touch") return;
+    if (event.target.closest("#mobile-card")) return;
+    if (event.target.closest(".star-hotspot")) return;
 
-    if (!event.target.closest(".star-hotspot")) {
-        hotspots.forEach(element => {
-            element.classList.remove("tooltip-open");
-        });
-    }
+    hideMobileCard();
+    hotspots.forEach(element => element.classList.remove("tooltip-open"));
 });
 
 /* RESOLUCIÓN ADAPTABLE */
